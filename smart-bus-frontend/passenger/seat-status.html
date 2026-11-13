@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Bus Seat Status (2D Map) | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+          <h2 class="passenger-title">2D Visual Seat Layout</h2>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <a href="/" style="color:#f87171;font-size:11px;font-weight:700;text-decoration:none;background:rgba(216,78,85,0.15);padding:4px 8px;border-radius:12px;border:1px solid rgba(216,78,85,0.3);">
+            <i class="fa-solid fa-ticket"></i> All Buses
+          </a>
+          <select id="seat-bus-select" class="form-control-custom" style="width:130px;padding:4px 8px;font-size:12px;" onchange="loadSeatMap(this.value)">
+            <option value="1">Bus SB-101 (IoT)</option>
+            <option value="2">Bus SB-102 (Electric)</option>
+            <option value="3">Bus SB-103 (City)</option>
+            <option value="4">Bus SB-104 (Sleeper)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:16px 20px;">
+      <!-- Bus Showcase Hero Card -->
+      <div class="glass-panel" style="padding:14px;border-radius:16px;margin-bottom:16px;display:flex;gap:14px;align-items:center;background:rgba(17,24,39,0.85);border:1px solid var(--border-glass);">
+        <img id="seat-bus-img" src="/assets/images/volvo_luxury_bus.jpg" alt="Smart Bus" style="width:96px;height:70px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,0.15);">
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+            <span id="seat-bus-badge" style="background:#10b981;color:#fff;font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;">PHYSICAL IoT</span>
+            <span id="seat-bus-rating" style="font-size:11px;color:#f59e0b;font-weight:700;">★ 4.9 (420+ reviews)</span>
+          </div>
+          <div id="seat-bus-name" style="font-size:15px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+            Bus SB-101 • Volvo 9700 Smart Edition
+          </div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:2px;">
+            <i class="fa-solid fa-wifi" style="margin-right:6px;"></i>
+            <i class="fa-solid fa-snowflake" style="margin-right:6px;"></i>
+            <i class="fa-solid fa-plug" style="margin-right:6px;"></i>
+            <span id="seat-bus-route" style="color:#cbd5e1;">Route 101: Central Loop</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Capacity Overview -->
+      <div class="glass-panel" style="padding:14px;border-radius:14px;margin-bottom:16px;display:flex;justify-content:space-around;text-align:center;">
+        <div>
+          <div id="seat-avail-count" style="font-size:22px;font-weight:800;color:#10b981;">6</div>
+          <div style="font-size:11px;color:#94a3b8;">Available Seats</div>
+        </div>
+        <div style="border-left:1px solid var(--border-glass);"></div>
+        <div>
+          <div id="seat-occ-count" style="font-size:22px;font-weight:800;color:#ef4444;">0</div>
+          <div style="font-size:11px;color:#94a3b8;">Occupied (Dual IR)</div>
+        </div>
+        <div style="border-left:1px solid var(--border-glass);"></div>
+        <div>
+          <div id="seat-pct" style="font-size:22px;font-weight:800;color:#38bdf8;">0%</div>
+          <div style="font-size:11px;color:#94a3b8;">Capacity Load</div>
+        </div>
+      </div>
+
+      <!-- Legend -->
+      <div style="display:flex;justify-content:center;gap:14px;font-size:11px;color:#cbd5e1;margin-bottom:14px;">
+        <span style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:3px;background:rgba(16,185,129,0.2);border:1px solid #10b981;"></div> Free</span>
+        <span style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:3px;background:rgba(216,78,85,0.8);border:1px solid #d84e55;"></div> Selected</span>
+        <span style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:3px;background:rgba(239,68,68,0.2);border:1px solid #ef4444;"></div> Occupied</span>
+        <span style="display:flex;align-items:center;gap:5px;"><div style="width:12px;height:12px;border-radius:3px;background:rgba(168,85,247,0.2);border:1px solid #a855f7;"></div> Priority</span>
+      </div>
+
+      <!-- 2D Bus Interior Matrix -->
+      <div class="bus-seating-container">
+        <div class="bus-cabin-front">
+          <i class="fa-solid fa-dharmachakra"></i> DRIVER CABIN (FRONT OF BUS)
+        </div>
+
+        <div id="seat-matrix-grid">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Selected Seats Booking Bar -->
+        <div id="seat-selection-action-bar" style="margin-top:16px;padding-top:12px;border-top:1px dashed rgba(255,255,255,0.15);display:none;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:11px;color:#94a3b8;">Selected: <strong id="selected-seats-label" style="color:#f87171;">-</strong></div>
+            <div style="font-size:14px;font-weight:800;color:#fff;">Total: <span id="selected-total-label" style="color:#10b981;">$0.00</span></div>
+          </div>
+          <button onclick="bookSelectedSeatsOnPage()" class="btn-submit" style="width:auto;padding:8px 16px;font-size:12px;margin:0;">
+            <i class="fa-solid fa-ticket"></i> Reserve Now
+          </button>
+        </div>
+
+        <div style="text-align:center;padding:10px;font-size:11px;color:#64748b;margin-top:10px;">
+          Dual IR Break-Beam Sensors at Entrance & Exit update occupancy in real-time
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    let activeBusId = 1;
+    let selectedSeatsOnPage = [];
+    let currentBusFare = 25.0;
+
+    const busProfiles = {
+      1: { name: 'Bus SB-101 • Volvo 9700 Smart Edition', badge: 'PHYSICAL IoT', bg: '#10b981', img: '/assets/images/volvo_luxury_bus.jpg', fare: 25.0, route: 'Route 101: Central Loop' },
+      2: { name: 'Bus SB-102 • Mercedes Citaro E-Transit', badge: '100% ELECTRIC', bg: '#0284c7', img: '/assets/images/electric_smart_bus.jpg', fare: 45.0, route: 'Route 202: Airport Express' },
+      3: { name: 'Bus SB-103 • Tour Liner City Coach', badge: 'SCENIC CIRCULAR', bg: '#d97706', img: '/assets/images/bus_sunset_coach.jpg', fare: 20.0, route: 'Route 303: Red City Loop' },
+      4: { name: 'Bus SB-104 • Scania Intercity Royal', badge: 'ROYAL SLEEPER', bg: '#7c3aed', img: '/assets/images/hero_luxury_coach.jpg', fare: 38.0, route: 'Intercity Highway Express' }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bId = urlParams.get('bus_id');
+      if (bId) {
+        activeBusId = parseInt(bId);
+        const sel = document.getElementById('seat-bus-select');
+        if (sel) sel.value = activeBusId;
+      }
+      loadSeatMap(activeBusId);
+    });
+
+    async function loadSeatMap(busId) {
+      activeBusId = parseInt(busId);
+      selectedSeatsOnPage = [];
+      updateActionBar();
+
+      // Update bus profile card
+      const prof = busProfiles[activeBusId] || busProfiles[1];
+      currentBusFare = prof.fare;
+      document.getElementById('seat-bus-name').textContent = prof.name;
+      document.getElementById('seat-bus-badge').textContent = prof.badge;
+      document.getElementById('seat-bus-badge').style.background = prof.bg;
+      document.getElementById('seat-bus-img').src = prof.img;
+      document.getElementById('seat-bus-route').textContent = prof.route;
+
+      const res = await apiRequest(`/passenger/bus/${activeBusId}/seats`);
+      if (res && res.seats) {
+        document.getElementById('seat-avail-count').textContent = res.available_seats;
+        document.getElementById('seat-occ-count').textContent = res.occupied_seats;
+        document.getElementById('seat-pct').textContent = `${res.occupancy_rate.toFixed(0)}%`;
+
+        // Group seats by row
+        const rowsMap = {};
+        res.seats.forEach(s => {
+          if (!rowsMap[s.row]) rowsMap[s.row] = [];
+          rowsMap[s.row].push(s);
+        });
+
+        const grid = document.getElementById('seat-matrix-grid');
+        grid.innerHTML = Object.keys(rowsMap).map(rowKey => {
+          const rowSeats = rowsMap[rowKey];
+          const leftPair = rowSeats.slice(0, 2);
+          const rightPair = rowSeats.slice(2, 4);
+
+          return `
+            <div class="seat-row">
+              <div class="seat-group">
+                ${leftPair.map(st => `
+                  <div class="seat-box ${st.is_occupied ? 'occupied' : (st.type.includes('PRIORITY') ? 'priority' : 'available')}" 
+                       id="seat-box-${st.seat_number}"
+                       onclick="clickSeat('${st.seat_number}', ${st.is_occupied})" 
+                       title="Seat ${st.seat_number} (${st.type})">
+                    <i class="fa-solid fa-chair"></i>
+                    <span>${st.seat_number}</span>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="seat-aisle">||</div>
+
+              <div class="seat-group">
+                ${rightPair.map(st => `
+                  <div class="seat-box ${st.is_occupied ? 'occupied' : (st.type.includes('PRIORITY') ? 'priority' : 'available')}" 
+                       id="seat-box-${st.seat_number}"
+                       onclick="clickSeat('${st.seat_number}', ${st.is_occupied})" 
+                       title="Seat ${st.seat_number} (${st.type})">
+                    <i class="fa-solid fa-chair"></i>
+                    <span>${st.seat_number}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    function clickSeat(seatNum, isOcc) {
+      if (isOcc) {
+        showToast(`Seat ${seatNum} is occupied by another passenger (Dual IR confirmed).`, 'warning');
+        return;
+      }
+      const box = document.getElementById(`seat-box-${seatNum}`);
+      if (selectedSeatsOnPage.includes(seatNum)) {
+        selectedSeatsOnPage = selectedSeatsOnPage.filter(s => s !== seatNum);
+        if (box) box.style.background = '';
+      } else {
+        selectedSeatsOnPage.push(seatNum);
+        if (box) box.style.background = '#d84e55';
+      }
+      updateActionBar();
+    }
+
+    function updateActionBar() {
+      const bar = document.getElementById('seat-selection-action-bar');
+      if (!bar) return;
+      if (selectedSeatsOnPage.length === 0) {
+        bar.style.display = 'none';
+      } else {
+        bar.style.display = 'flex';
+        document.getElementById('selected-seats-label').textContent = selectedSeatsOnPage.join(', ');
+        const total = selectedSeatsOnPage.length * currentBusFare;
+        document.getElementById('selected-total-label').textContent = `$${total.toFixed(2)}`;
+      }
+    }
+
+    async function bookSelectedSeatsOnPage() {
+      if (selectedSeatsOnPage.length === 0) return;
+      showToast('Reserving your seats...', 'info');
+      try {
+        const payload = {
+          bus_id: activeBusId,
+          passenger_name: 'Smart Passenger',
+          seats: selectedSeatsOnPage,
+          fare: currentBusFare * selectedSeatsOnPage.length
+        };
+        const res = await apiRequest('/passenger/book-ticket', 'POST', payload);
+        if (res && res.success) {
+          showToast(`Success! Reserved seats: ${selectedSeatsOnPage.join(', ')} (Ticket: ${res.ticket.ticket_id})`, 'success');
+          selectedSeatsOnPage = [];
+          updateActionBar();
+          loadSeatMap(activeBusId);
+        } else {
+          showToast(res.message || 'Booking error.', 'danger');
+        }
+      } catch (e) {
+        showToast('Error booking seats.', 'danger');
+      }
+    }
+
+    document.addEventListener('busTelemetryUpdate', (e) => {
+      if (e.detail && e.detail.bus && e.detail.bus.id === activeBusId) {
+        loadSeatMap(activeBusId);
+      }
+    });
+  </script>
+</body>
+</html>

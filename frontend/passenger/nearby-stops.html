@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nearby Bus Stops | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+          <h2 class="passenger-title">Nearby Transit Stops</h2>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:20px;">
+      <div class="glass-panel" style="padding:14px;border-radius:12px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+        <i class="fa-solid fa-location-crosshairs" style="font-size:22px;color:#38bdf8;"></i>
+        <div>
+          <b style="color:#fff;font-size:14px;">Location Active</b>
+          <div style="font-size:11px;color:#94a3b8;">Showing stops within walking radius (~3km)</div>
+        </div>
+      </div>
+
+      <div id="nearby-stops-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', loadNearbyStops);
+
+    async function loadNearbyStops() {
+      const res = await apiRequest('/passenger/nearby-stops?latitude=12.9780&longitude=77.5950');
+      const container = document.getElementById('nearby-stops-list');
+      if (res && res.stops && container) {
+        container.innerHTML = res.stops.map(s => `
+          <div class="glass-panel" style="padding:18px;border-radius:14px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <b style="color:#fff;font-size:16px;">🚏 ${s.name}</b>
+              <span class="badge-tag badge-info">${s.distance_km} km</span>
+            </div>
+            <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">
+              <i class="fa-solid fa-person-walking" style="color:#10b981;"></i> ~${s.walking_time_mins} mins walk • ${s.address}
+            </div>
+
+            ${s.upcoming_buses && s.upcoming_buses.length > 0 ? `
+              <div style="background:rgba(0,0,0,0.3);padding:10px;border-radius:8px;">
+                <div style="font-size:10px;color:#64748b;text-transform:uppercase;font-weight:700;margin-bottom:4px;">Upcoming Departures:</div>
+                ${s.upcoming_buses.map(ub => `
+                  <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#cbd5e1;padding:2px 0;">
+                    <span><b>${ub.bus_number}</b> (${ub.route_name})</span>
+                    <span style="color:#38bdf8;font-weight:700;">ETA ${ub.eta_minutes}m (${ub.available_seats} seats)</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<div style="font-size:11px;color:#64748b;">No scheduled buses arriving within 30 mins.</div>'}
+          </div>
+        `).join('');
+      }
+    }
+  </script>
+</body>
+</html>

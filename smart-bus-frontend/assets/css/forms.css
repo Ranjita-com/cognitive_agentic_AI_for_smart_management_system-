@@ -1,0 +1,143 @@
+/* ============================================================
+   SMART BUS - FORMS, INPUTS & MODALS
+   ============================================================ */
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.form-control-custom,
+input[type="text"],
+input[type="search"],
+input[type="password"],
+input[type="number"],
+input[type="email"],
+input[type="datetime-local"],
+select.form-control-custom,
+select.route-dropdown-custom,
+select,
+textarea.form-control-custom {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(9, 14, 26, 0.95) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  border-radius: var(--radius-sm);
+  color: #ffffff !important;
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-control-custom:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.35) !important;
+  background: rgba(13, 20, 36, 0.98) !important;
+  color: #ffffff !important;
+}
+
+.form-control-custom::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Fix Windows / Chromium Option Visibility */
+select option,
+select.form-control-custom option,
+select.route-dropdown-custom option {
+  background-color: #0b1326 !important;
+  color: #f8fafc !important;
+  padding: 10px 14px;
+}
+
+select option:hover,
+select option:checked {
+  background-color: #1e293b !important;
+  color: #38bdf8 !important;
+}
+
+/* Browser Autofill Contrast Guardians */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #f8fafc !important;
+  -webkit-box-shadow: 0 0 0px 1000px #090e1a inset !important;
+  box-shadow: 0 0 0px 1000px #090e1a inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  border-color: rgba(56, 189, 248, 0.4) !important;
+}
+
+/* Auth Card & Centered Layout */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.1), transparent 50%),
+              var(--bg-dark);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 36px 32px;
+  border-radius: var(--radius-lg);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.auth-header .brand-logo {
+  margin: 0 auto 16px;
+  width: 54px;
+  height: 54px;
+  font-size: 26px;
+}
+
+.auth-header h2 {
+  font-size: 24px;
+  margin-bottom: 6px;
+}
+
+.auth-header p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: 10px;
+}
+
+.btn-submit:hover {
+  opacity: 0.92;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(56, 189, 248, 0.35);
+}

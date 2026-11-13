@@ -1,0 +1,559 @@
+/* ============================================================
+   SMART BUS - EXECUTIVE PRO THEME (ENTERPRISE FLEET SUITE)
+   A clean, authoritative, corporate transit operations theme
+   inspired by enterprise logistics platforms (Samsara, Flexport,
+   Apple Transit, Linear, Stripe Dashboard).
+   ============================================================ */
+
+/* Root Variables Override when Executive Theme is Active */
+html[data-theme="executive"],
+body[data-theme="executive"],
+[data-theme="executive"] {
+  --bg-dark: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-glass: #ffffff;
+  --border-glass: #e2e8f0;
+  --border-glow: #cbd5e1;
+
+  --accent-primary: #1d4ed8;       /* Executive Royal Blue */
+  --accent-secondary: #0284c7;     /* Enterprise Cobalt */
+  --accent-success: #059669;       /* Forest Emerald */
+  --accent-warning: #d97706;       /* Deep Amber */
+  --accent-danger: #dc2626;        /* Enterprise Crimson */
+  --accent-purple: #7c3aed;        /* Slate Violet */
+
+  --text-main: #0f172a;            /* Slate-900 High Contrast */
+  --text-muted: #334155;           /* Slate-700 Legible */
+  --text-dim: #64748b;             /* Slate-500 Secondary */
+
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 6px 16px -4px rgba(15, 23, 42, 0.12), 0 2px 6px -2px rgba(15, 23, 42, 0.06);
+  --shadow-glow: none;
+}
+
+/* Base Body & Layout */
+[data-theme="executive"] body,
+body[data-theme="executive"] {
+  background-color: #f1f5f9 !important;
+  background-image: 
+    linear-gradient(180deg, rgba(241, 245, 249, 0.94) 0%, rgba(248, 250, 252, 0.97) 100%),
+    url('/assets/images/site_background.jpg') !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] h1,
+[data-theme="executive"] h2,
+[data-theme="executive"] h3,
+[data-theme="executive"] h4,
+[data-theme="executive"] h5,
+[data-theme="executive"] h6 {
+  color: #0f172a !important;
+  letter-spacing: -0.01em;
+}
+
+/* Glass Panels -> Crisp Enterprise Surface Cards */
+[data-theme="executive"] .glass-panel {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04) !important;
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .glass-panel:hover {
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 6px 16px -4px rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Override inline text colors inside panels */
+[data-theme="executive"] .glass-panel [style*="color:#fff"],
+[data-theme="executive"] .glass-panel [style*="color: #fff"],
+[data-theme="executive"] .glass-panel [style*="color:#f8fafc"],
+[data-theme="executive"] .glass-panel [style*="color:#cbd5e1"] {
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .glass-panel [style*="color:#94a3b8"],
+[data-theme="executive"] .glass-panel [style*="color: #94a3b8"],
+[data-theme="executive"] .glass-panel [style*="color:#64748b"] {
+  color: #475569 !important;
+}
+
+/* Admin Sidebar - Professional Navy Operations Center */
+[data-theme="executive"] .admin-sidebar {
+  background: #0b1329 !important;
+  border-right: 1px solid #1e293b !important;
+  backdrop-filter: none !important;
+}
+
+[data-theme="executive"] .admin-sidebar .sidebar-header {
+  border-bottom: 1px solid #1e293b !important;
+}
+
+[data-theme="executive"] .admin-sidebar .brand-name {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+  font-weight: 800;
+}
+
+[data-theme="executive"] .admin-sidebar .brand-badge {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[data-theme="executive"] .admin-sidebar .menu-category {
+  color: #64748b !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+[data-theme="executive"] .admin-sidebar .menu-item a {
+  color: #94a3b8 !important;
+  font-weight: 500;
+}
+
+[data-theme="executive"] .admin-sidebar .menu-item a:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="executive"] .admin-sidebar .menu-item.active a {
+  background: rgba(29, 78, 216, 0.22) !important;
+  color: #93c5fd !important;
+  border-left: 3px solid #3b82f6 !important;
+  font-weight: 600;
+}
+
+[data-theme="executive"] .admin-sidebar .sidebar-footer {
+  border-top: 1px solid #1e293b !important;
+}
+
+[data-theme="executive"] .admin-sidebar .user-profile-badge {
+  background: #111e38 !important;
+  border: 1px solid #1e293b !important;
+}
+
+/* Admin Top Navbar */
+[data-theme="executive"] .admin-navbar {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="executive"] .admin-navbar .page-title {
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .admin-navbar [style*="color:#94a3b8"] {
+  color: #64748b !important;
+}
+
+[data-theme="executive"] .admin-navbar .live-indicator {
+  background: #ecfdf5 !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #065f46 !important;
+  font-weight: 600;
+}
+
+[data-theme="executive"] .admin-navbar .pulsing-dot {
+  background: #059669 !important;
+  box-shadow: 0 0 6px #059669 !important;
+}
+
+/* Action Buttons in Executive Mode */
+[data-theme="executive"] .action-btn {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+  font-weight: 600;
+}
+
+[data-theme="executive"] .action-btn:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .action-btn.btn-primary {
+  background: #1d4ed8 !important;
+  border: 1px solid #1e40af !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(29, 78, 216, 0.25) !important;
+}
+
+[data-theme="executive"] .action-btn.btn-primary:hover {
+  background: #1e40af !important;
+  color: #ffffff !important;
+}
+
+[data-theme="executive"] .action-btn.btn-danger {
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #dc2626 !important;
+}
+
+[data-theme="executive"] .action-btn.btn-danger:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+/* KPI Cards */
+[data-theme="executive"] .kpi-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="executive"] .kpi-info h4 {
+  color: #64748b !important;
+  font-weight: 600;
+}
+
+[data-theme="executive"] .kpi-info .kpi-value {
+  color: #0f172a !important;
+  font-weight: 800;
+}
+
+[data-theme="executive"] .kpi-icon {
+  background: #f1f5f9 !important;
+  border-radius: 10px;
+}
+
+/* Sections & Cards */
+[data-theme="executive"] .section-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+  background: #fcfdfe;
+}
+
+[data-theme="executive"] .section-title {
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .bus-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+[data-theme="executive"] .bus-card:hover {
+  border-color: #94a3b8 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="executive"] .bus-number {
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .progress-bar-custom {
+  background: #e2e8f0 !important;
+}
+
+/* Tables in Executive Mode */
+[data-theme="executive"] .custom-table th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  font-weight: 700;
+}
+
+[data-theme="executive"] .custom-table td {
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+[data-theme="executive"] .custom-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+[data-theme="executive"] .custom-table .primary-cell {
+  color: #0f172a !important;
+  font-weight: 700;
+}
+
+[data-theme="executive"] .table-btn {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #475569 !important;
+}
+
+[data-theme="executive"] .table-btn:hover {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+/* Form Controls & Inputs */
+[data-theme="executive"] .form-control-custom,
+[data-theme="executive"] input[type="text"],
+[data-theme="executive"] input[type="search"],
+[data-theme="executive"] input[type="password"],
+[data-theme="executive"] input[type="number"],
+[data-theme="executive"] select.form-control-custom {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="executive"] .form-control-custom:focus,
+[data-theme="executive"] input:focus,
+[data-theme="executive"] select:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+  background: #ffffff !important;
+}
+
+[data-theme="executive"] select.form-control-custom option {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .form-control-custom::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Modals */
+[data-theme="executive"] .modal-backdrop {
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+[data-theme="executive"] .modal-backdrop .glass-panel {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15) !important;
+}
+
+/* ============================================================
+   PASSENGER MOBILE APP - EXECUTIVE PRO THEME STYLING
+   ============================================================ */
+
+[data-theme="executive"] .passenger-wrapper {
+  background: #f8fafc !important;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  box-shadow: 0 10px 40px -10px rgba(15, 23, 42, 0.1) !important;
+}
+
+[data-theme="executive"] .passenger-header {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="executive"] .passenger-header .brand-logo {
+  background: linear-gradient(135deg, #1d4ed8, #2563eb) !important;
+  box-shadow: 0 2px 8px rgba(29, 78, 216, 0.25) !important;
+}
+
+[data-theme="executive"] .passenger-header [style*="color:#fff"],
+[data-theme="executive"] .passenger-header [style*="color: #fff"] {
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .passenger-title {
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .passenger-hero {
+  background: linear-gradient(180deg, #eff6ff 0%, #f8fafc 100%) !important;
+}
+
+[data-theme="executive"] .passenger-hero h1 {
+  color: #0f172a !important;
+}
+
+[data-theme="executive"] .passenger-hero p {
+  color: #475569 !important;
+}
+
+[data-theme="executive"] .search-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="executive"] .hero-chip-btn {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 600;
+}
+
+[data-theme="executive"] .hero-chip-btn:hover {
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1d4ed8 !important;
+}
+
+[data-theme="executive"] .btn-submit {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.25) !important;
+  font-weight: 700;
+}
+
+[data-theme="executive"] .btn-submit:hover {
+  background: #1e40af !important;
+}
+
+[data-theme="executive"] .bottom-nav {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  border-top: 1px solid #e2e8f0 !important;
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="executive"] .nav-tab {
+  color: #64748b !important;
+}
+
+[data-theme="executive"] .nav-tab.active,
+[data-theme="executive"] .nav-tab:hover {
+  color: #1d4ed8 !important;
+}
+
+/* Bus Cabin & Seat Matrix */
+[data-theme="executive"] .bus-seating-container {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="executive"] .bus-cabin-front {
+  background: #f8fafc !important;
+  color: #64748b !important;
+  border-bottom: 2px dashed #cbd5e1 !important;
+}
+
+[data-theme="executive"] .seat-box.available {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border-color: #a7f3d0 !important;
+}
+
+[data-theme="executive"] .seat-box.occupied {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #fecaca !important;
+}
+
+[data-theme="executive"] .seat-box.priority {
+  background: #f5f3ff !important;
+  color: #6d28d9 !important;
+  border-color: #ddd6fe !important;
+}
+
+/* Chat Bubbles */
+[data-theme="executive"] .chat-bubble.bot {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+[data-theme="executive"] .chat-bubble.user {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="executive"] .chat-input-bar {
+  background: #ffffff !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+/* ============================================================
+   THEME SWITCH BUTTON STYLES (BOTH PAGES)
+   ============================================================ */
+
+/* Theme Toggle Button in Admin Navbar */
+.theme-switch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+}
+
+.theme-switch-btn:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Executive variant of the button */
+[data-theme="executive"] .theme-switch-btn {
+  background: #1d4ed8 !important;
+  border: 1px solid #1e40af !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(29, 78, 216, 0.2) !important;
+}
+
+[data-theme="executive"] .theme-switch-btn:hover {
+  background: #1e40af !important;
+  color: #ffffff !important;
+}
+
+/* Theme Toggle Button in Passenger Nav */
+.passenger-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+}
+
+.passenger-theme-toggle:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #ffffff;
+}
+
+[data-theme="executive"] .passenger-theme-toggle {
+  background: #1d4ed8 !important;
+  border: 1px solid #1e40af !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.2) !important;
+}
+
+[data-theme="executive"] .passenger-theme-toggle:hover {
+  background: #1e40af !important;
+  color: #ffffff !important;
+}
+
+/* Subtle Animated Theme Badge Pill */
+.theme-pill-indicator {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  margin-left: 2px;
+}

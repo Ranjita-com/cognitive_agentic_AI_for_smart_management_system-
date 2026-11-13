@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Bus | Passenger App</title>
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('smartbus_theme');
+        if (t === 'executive') document.documentElement.setAttribute('data-theme', 'executive');
+        else document.documentElement.setAttribute('data-theme', 'cyber');
+      } catch (e) { }
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+  <style>
+    .quick-chips-hero {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      margin-top: 10px;
+      scrollbar-width: none;
+    }
+
+    .quick-chips-hero::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hero-chip-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      white-space: nowrap;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+
+    .hero-chip-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="passenger-wrapper fade-in">
+    <!-- Header -->
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="/" class="brand-logo" style="width:34px;height:34px;font-size:16px;text-decoration:none;"
+            title="Back to Main Web Portal">
+            <i class="fa-solid fa-bus-simple"></i>
+          </a>
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#fff;">SmartBus Transit</div>
+            <div style="font-size:11px;color:#10b981;"><i class="fa-solid fa-circle" style="font-size:8px;"></i>
+              Real-Time Active</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="/"
+            style="color:#f87171;font-size:12px;font-weight:700;text-decoration:none;background:rgba(216,78,85,0.15);padding:4px 10px;border-radius:14px;border:1px solid rgba(216,78,85,0.3);">
+            <i class="fa-solid fa-globe"></i> Web Portal
+          </a>
+          <button id="passenger-theme-toggle" class="passenger-theme-toggle" onclick="toggleTheme()"
+            title="Switch Theme (Classic Cyber / Executive Pro)">
+            <i class="fa-solid fa-briefcase"></i> <span>Executive</span>
+          </button>
+          <a href="notifications.html" style="color:#fff;text-decoration:none;position:relative;"
+            title="Transit Alerts">
+            <i class="fa-solid fa-bell" style="font-size:20px;color:#cbd5e1;"></i>
+            <span id="nav-alert-badge"
+              style="display:none;position:absolute;top:-2px;right:-3px;width:9px;height:9px;background:#ef4444;border-radius:50%;border:2px solid #0f172a;"></span>
+          </a>
+          <a href="profile.html" style="color:#fff;text-decoration:none;">
+            <i class="fa-solid fa-circle-user" style="font-size:24px;color:#38bdf8;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Transit Announcement / Broadcast Banner -->
+    <div id="passenger-broadcast-container" style="padding:0 20px 14px;display:none;">
+      <!-- Populated dynamically if active broadcasts/alerts exist -->
+    </div>
+
+    <!-- Hero Search with Realistic Image Background -->
+    <div class="passenger-hero"
+      style="background: linear-gradient(180deg, rgba(15,23,42,0.75) 0%, rgba(15,23,42,0.95) 100%), url('/assets/images/hero_luxury_coach.jpg'); background-size: cover; background-position: center; border-radius: 20px; margin: 10px 16px 20px; padding: 28px 20px;">
+      <div
+        style="display:inline-flex;align-items:center;gap:6px;background:rgba(216,78,85,0.25);border:1px solid rgba(216,78,85,0.4);padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;color:#fca5a5;margin-bottom:8px;">
+
+      </div>
+      <h1 style="font-size:26px;font-weight:900;color:#fff;margin-bottom:6px;">Where to today?</h1>
+      <p style="font-size:13px;color:#cbd5e1;margin-bottom:16px;">Live GPS tracking, dynamic ETA & real-time seat
+        availability.</p>
+
+      <!-- Quick Search Box -->
+      <form action="search.html" method="GET" class="glass-panel search-card"
+        style="box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);">
+        <div class="search-input-group" style="margin-bottom:8px;">
+          <i class="fa-solid fa-circle-dot" style="color:#10b981;"></i>
+          <input type="text" id="home-origin" name="origin" class="form-control-custom"
+            placeholder="Starting Location or Stop (e.g. Hospital Stop, Airport)" list="home-stops-list"
+            autocomplete="off">
+        </div>
+
+        <div class="search-input-group" style="margin-bottom:12px;">
+          <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+          <input type="text" id="home-dest" name="destination" class="form-control-custom"
+            placeholder="Destination (e.g. Bus Terminal, Downtown)" list="home-stops-list" autocomplete="off">
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fa-solid fa-magnifying-glass"></i> Find Available Buses & Seats
+        </button>
+
+        <!-- Quick Route Chips in Hero -->
+        <div style="margin-top:12px;">
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;display:flex;align-items:center;gap:4px;">
+            <i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> Quick Express Lines:
+          </div>
+          <div id="home-quick-chips" class="quick-chips-hero">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- HTML5 Datalist for Stops Autocomplete -->
+    <datalist id="home-stops-list"></datalist>
+
+    <!-- Quick Shortcuts Grid -->
+    <div style="padding:0 20px 16px;">
+      <div style="display:grid;grid-template-columns:repeat(5, 1fr);gap:8px;text-align:center;">
+        <a href="tracking.html" class="glass-panel" style="padding:12px 4px;text-decoration:none;border-radius:12px;">
+          <i class="fa-solid fa-map-location-dot" style="font-size:20px;color:#38bdf8;margin-bottom:6px;"></i>
+          <div style="font-size:10px;font-weight:600;color:#fff;">Live Track</div>
+        </a>
+        <a href="seat-status.html" class="glass-panel"
+          style="padding:12px 4px;text-decoration:none;border-radius:12px;">
+          <i class="fa-solid fa-chair" style="font-size:20px;color:#10b981;margin-bottom:6px;"></i>
+          <div style="font-size:10px;font-weight:600;color:#fff;">Seats</div>
+        </a>
+        <a href="nearby-stops.html" class="glass-panel"
+          style="padding:12px 4px;text-decoration:none;border-radius:12px;">
+          <i class="fa-solid fa-person-walking" style="font-size:20px;color:#f59e0b;margin-bottom:6px;"></i>
+          <div style="font-size:10px;font-weight:600;color:#fff;">Near Me</div>
+        </a>
+        <a href="feedback.html" class="glass-panel"
+          style="padding:12px 4px;text-decoration:none;border-radius:12px;border:1px solid rgba(236,72,153,0.3);">
+          <i class="fa-solid fa-comment-dots" style="font-size:20px;color:#ec4899;margin-bottom:6px;"></i>
+          <div style="font-size:10px;font-weight:600;color:#f472b6;">Feedback</div>
+        </a>
+        <a href="help.html" class="glass-panel" style="padding:12px 4px;text-decoration:none;border-radius:12px;">
+          <i class="fa-solid fa-robot" style="font-size:20px;color:#a855f7;margin-bottom:6px;"></i>
+          <div style="font-size:10px;font-weight:600;color:#fff;">AI Helper</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Quick Feedback & Lost Property Card Banner -->
+    <div style="padding:0 20px 18px;">
+      <a href="feedback.html" class="glass-panel"
+        style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-radius:14px;text-decoration:none;border:1px solid rgba(236,72,153,0.3);background:linear-gradient(135deg, rgba(236,72,153,0.12), rgba(168,85,247,0.12));">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div
+            style="width:36px;height:36px;border-radius:10px;background:rgba(236,72,153,0.2);display:flex;align-items:center;justify-content:center;color:#f472b6;">
+            <i class="fa-solid fa-star-half-stroke" style="font-size:18px;"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;">Rate Your Trip & Lost Items</div>
+            <div style="font-size:11px;color:#94a3b8;">Share feedback, driver rating or report lost belongings</div>
+          </div>
+        </div>
+        <i class="fa-solid fa-chevron-right" style="font-size:12px;color:#f472b6;"></i>
+      </a>
+    </div>
+
+    <!-- Active Live Buses Near You -->
+    <div style="padding:0 20px 80px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="font-size:16px;color:#fff;margin:0;">Live Buses En Route</h3>
+        <a href="tracking.html" style="font-size:12px;color:#38bdf8;text-decoration:none;">View All Live</a>
+      </div>
+      <div id="passenger-home-buses">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Bottom App Navigation Bar -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab active"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initSocket();
+      loadHomeBuses();
+      checkLiveAlerts();
+      loadStopsAndQuickRoutes();
+
+      // Real-time broadcast and alert updates
+      document.addEventListener('newFleetAlert', (e) => {
+        checkLiveAlerts();
+        const alertData = e.detail?.alert || (e.detail?.alerts && e.detail.alerts[0]);
+        if (alertData) {
+          showToast(`📢 Transit Notice: ${alertData.message}`, alertData.severity === 'CRITICAL' ? 'danger' : 'info');
+        }
+      });
+    });
+
+    async function loadStopsAndQuickRoutes() {
+      try {
+        const [stopsRes, routesRes] = await Promise.all([
+          apiRequest('/stops'),
+          apiRequest('/routes')
+        ]);
+
+        if (stopsRes && stopsRes.stops) {
+          const datalist = document.getElementById('home-stops-list');
+          if (datalist) {
+            datalist.innerHTML = stopsRes.stops.map(s => `<option value="${s.name}">${s.name} (${s.code})</option>`).join('');
+          }
+        }
+
+        if (routesRes && routesRes.routes) {
+          const chipsContainer = document.getElementById('home-quick-chips');
+          if (chipsContainer) {
+            chipsContainer.innerHTML = routesRes.routes.map(r => `
+              <a href="search.html?origin=${encodeURIComponent(r.origin)}&destination=${encodeURIComponent(r.destination)}" class="hero-chip-btn">
+                <strong style="color:${r.color || '#38bdf8'};">Route ${r.route_number}</strong>: ${r.origin} ➔ ${r.destination}
+              </a>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load stops/routes on homepage:', err);
+      }
+    }
+
+    async function checkLiveAlerts() {
+      const res = await apiRequest('/alerts?status=ACTIVE&limit=10');
+      const bannerContainer = document.getElementById('passenger-broadcast-container');
+      const badge = document.getElementById('nav-alert-badge');
+
+      if (res && res.alerts && res.alerts.length > 0) {
+        if (badge) badge.style.display = 'block';
+
+        const topAlert = res.alerts[0];
+        if (bannerContainer) {
+          const isCritical = topAlert.severity === 'CRITICAL' || topAlert.alert_type === 'SOS';
+          const isBroadcast = topAlert.alert_type === 'BROADCAST';
+          const borderColor = isCritical ? '#ef4444' : (isBroadcast ? '#a855f7' : '#38bdf8');
+          const icon = isBroadcast ? 'fa-bullhorn' : (isCritical ? 'fa-triangle-exclamation' : 'fa-bell');
+          const iconColor = isCritical ? '#ef4444' : (isBroadcast ? '#c084fc' : '#38bdf8');
+          const bgGrad = isCritical ? 'rgba(239, 68, 68, 0.15)' : (isBroadcast ? 'rgba(168, 85, 247, 0.15)' : 'rgba(56, 189, 248, 0.12)');
+
+          bannerContainer.style.display = 'block';
+          bannerContainer.innerHTML = `
+            <a href="notifications.html" style="text-decoration:none;display:block;">
+              <div class="glass-panel" style="padding:12px 16px;border-radius:14px;background:${bgGrad};border-left:4px solid ${borderColor};display:flex;align-items:center;justify-content:space-between;gap:12px;">
+                <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                  <i class="fa-solid ${icon}" style="font-size:16px;color:${iconColor};flex-shrink:0;"></i>
+                  <div style="min-width:0;">
+                    <div style="font-size:10px;font-weight:700;color:${iconColor};text-transform:uppercase;letter-spacing:0.5px;">${topAlert.alert_type} ADVISORY</div>
+                    <div style="font-size:13px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${topAlert.message}</div>
+                  </div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color:#94a3b8;font-size:12px;flex-shrink:0;"></i>
+              </div>
+            </a>
+          `;
+        }
+      } else {
+        if (badge) badge.style.display = 'none';
+        if (bannerContainer) bannerContainer.style.display = 'none';
+      }
+    }
+
+    async function loadHomeBuses() {
+      const res = await apiRequest('/buses');
+      const container = document.getElementById('passenger-home-buses');
+      if (res && res.buses && container) {
+        const activeBuses = res.buses.filter(b => b.status === 'active' || b.bus_number === 'SB-101');
+        container.innerHTML = activeBuses.map(b => {
+          const color = b.route_color || (b.route_number === '101' ? '#10b981' : (b.route_number === '202' ? '#3b82f6' : '#ef4444'));
+          const isReal = (b.bus_number === 'SB-101' || b.data_source === 'REAL');
+          const busImg = b.image_url || '/assets/images/hero_luxury_coach.jpg';
+          return `
+            <div class="glass-panel" style="padding:14px;border-radius:16px;border-left:4px solid ${color};margin-bottom:14px;background:rgba(17,24,39,0.7);">
+              <div style="display:flex;gap:12px;align-items:center;">
+                <img src="${busImg}" alt="${b.bus_number}" style="width:72px;height:72px;border-radius:12px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,0.15);">
+                <div style="flex:1;min-width:0;">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
+                    <span class="badge-tag" style="background:${color};color:#fff;font-weight:800;padding:2px 7px;font-size:10px;border-radius:4px;">Line ${b.route_number || '101'} • ${b.bus_number}</span>
+                    <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:${isReal ? 'rgba(16,185,129,0.2)' : 'rgba(56,189,248,0.2)'};color:${isReal ? '#34d399' : '#7dd3fc'};border:1px solid ${isReal ? 'rgba(16,185,129,0.4)' : 'rgba(56,189,248,0.3)'};">
+                      ${isReal ? 'PHYSICAL IoT' : 'AUTO SIM'}
+                    </span>
+                  </div>
+                  <div style="color:#fff;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    ${b.route_name || 'Active Transit Line'}
+                  </div>
+                  <div style="font-size:11px;color:#94a3b8;margin-top:2px;">
+                    <i class="fa-solid fa-chair" style="color:#10b981;"></i> <b style="color:#fff;">${b.available_seats} free</b> • Speed: ${b.speed.toFixed(0)} km/h
+                  </div>
+                </div>
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-size:16px;font-weight:800;color:${color};">~${b.dynamic_eta_mins || 3}m</div>
+                  <div style="font-size:9px;color:#64748b;">Live ETA</div>
+                </div>
+              </div>
+
+              <!-- Quick Action Strip -->
+              <div style="display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(255,255,255,0.1);">
+                <a href="seat-status.html?bus_id=${b.id}" style="flex:1;background:rgba(216,78,85,0.18);border:1px solid rgba(216,78,85,0.4);color:#fca5a5;padding:6px;border-radius:8px;text-align:center;font-size:11px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;">
+                  <i class="fa-solid fa-chair"></i> Reserve Seat
+                </a>
+                <a href="tracking.html?bus_id=${b.id}" style="flex:1;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;padding:6px;border-radius:8px;text-align:center;font-size:11px;font-weight:700;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;">
+                  <i class="fa-solid fa-map-location-dot"></i> Live Radar
+                </a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+  </script>
+</body>
+
+</html>

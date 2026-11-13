@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | Smart Bus Management System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+</head>
+<body>
+  <div class="auth-wrapper">
+    <div class="glass-panel auth-card fade-in">
+      <div class="auth-header">
+        <div class="brand-logo">
+          <i class="fa-solid fa-bus-simple"></i>
+        </div>
+        <h2>Fleet Command Login</h2>
+        <p>Smart Bus Management System • ESP32-S3 IoT</p>
+      </div>
+
+      <form id="admin-login-form">
+        <div class="form-group">
+          <label class="form-label" for="username">Username or Email</label>
+          <input type="text" id="username" class="form-control-custom" placeholder="admin" value="admin" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="form-control-custom" placeholder="••••••••" value="admin123" required>
+        </div>
+
+        <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;font-size:13px;">
+          <label style="display:flex;align-items:center;gap:6px;color:#94a3b8;cursor:pointer;">
+            <input type="checkbox" checked> Remember session
+          </label>
+          <a href="#" style="color:#38bdf8;text-decoration:none;">Forgot credentials?</a>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fa-solid fa-right-to-bracket"></i> Authenticate Fleet Access
+        </button>
+
+        <div style="text-align:center;margin-top:20px;font-size:13px;color:#64748b;">
+          Switching to Passenger Portal? <a href="../passenger/index.html" style="color:#38bdf8;text-decoration:none;font-weight:600;">Open Passenger App</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.getElementById('admin-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      const res = await apiRequest('/auth/login', 'POST', { username, password });
+      if (res.success) {
+        showToast('Authentication successful. Loading fleet dashboard...', 'success');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 600);
+      } else {
+        showToast(res.message || 'Login failed', 'danger');
+      }
+    });
+  </script>
+</body>
+</html>

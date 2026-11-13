@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rider Feedback & Lost Property | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+          <h2 class="passenger-title">Feedback & Lost Items</h2>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:20px;">
+      <form id="passenger-feedback-form" class="glass-panel" style="padding:20px;border-radius:16px;">
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input type="text" id="fb-name" class="form-control-custom" placeholder="John Doe" value="John Traveler" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Feedback Category</label>
+          <select id="fb-cat" class="form-control-custom">
+            <option value="Punctuality">Punctuality & Schedule</option>
+            <option value="Cleanliness">Cleanliness & AC</option>
+            <option value="Driver Behavior">Driver Behavior & Safety</option>
+            <option value="Lost Item">Lost & Found Report</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Rating (1 to 5 Stars)</label>
+          <select id="fb-rating" class="form-control-custom">
+            <option value="5">★★★★★ (5/5) Excellent</option>
+            <option value="4">★★★★☆ (4/5) Very Good</option>
+            <option value="3">★★★☆☆ (3/5) Average</option>
+            <option value="2">★★☆☆☆ (2/5) Poor</option>
+            <option value="1">★☆☆☆☆ (1/5) Terrible</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bus Number (Optional)</label>
+          <input type="text" id="fb-bus" class="form-control-custom" placeholder="SB-101">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Comments / Item Description</label>
+          <textarea id="fb-comments" class="form-control-custom" rows="4" placeholder="Tell us about your trip or describe any lost property..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">Submit Rider Report</button>
+      </form>
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.getElementById('passenger-feedback-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const passenger_name = document.getElementById('fb-name').value;
+      const category = document.getElementById('fb-cat').value;
+      const rating = parseInt(document.getElementById('fb-rating').value);
+      const comments = document.getElementById('fb-comments').value;
+
+      const res = await apiRequest('/passenger/feedback', 'POST', {
+        passenger_name,
+        category,
+        rating,
+        comments
+      });
+
+      if (res.success) {
+        showToast(res.message, 'success');
+        document.getElementById('passenger-feedback-form').reset();
+      } else {
+        showToast(res.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>

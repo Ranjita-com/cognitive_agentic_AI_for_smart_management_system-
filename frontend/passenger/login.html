@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passenger Sign In | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper" style="display:flex;align-items:center;justify-content:center;padding:20px;">
+    <div class="glass-panel" style="width:100%;padding:32px 24px;border-radius:20px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <div class="brand-logo" style="margin:0 auto 14px;width:50px;height:50px;font-size:24px;">
+          <i class="fa-solid fa-bus-simple"></i>
+        </div>
+        <h2 style="font-size:22px;color:#fff;margin-bottom:4px;">Passenger Sign In</h2>
+        <p style="font-size:13px;color:#94a3b8;">Access live passes, RFID cards, and bookmarks</p>
+      </div>
+
+      <form id="passenger-login-form">
+        <div class="form-group">
+          <label class="form-label">Username or Email</label>
+          <input type="text" id="p-username" class="form-control-custom" placeholder="passenger" value="passenger" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="p-password" class="form-control-custom" placeholder="••••••••" value="pass123" required>
+        </div>
+
+        <button type="submit" class="btn-submit">Sign In to Transit</button>
+
+        <div style="text-align:center;margin-top:20px;font-size:13px;color:#94a3b8;">
+          New rider? <a href="register.html" style="color:#38bdf8;font-weight:600;text-decoration:none;">Create Free Account</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.getElementById('passenger-login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('p-username').value;
+      const password = document.getElementById('p-password').value;
+
+      const res = await apiRequest('/auth/login', 'POST', { username, password });
+      if (res.success) {
+        showToast('Welcome aboard!', 'success');
+        setTimeout(() => window.location.href = 'index.html', 500);
+      } else {
+        showToast(res.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passenger Registration | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper" style="display:flex;align-items:center;justify-content:center;padding:20px;">
+    <div class="glass-panel" style="width:100%;padding:32px 24px;border-radius:20px;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div class="brand-logo" style="margin:0 auto 12px;width:46px;height:46px;font-size:22px;">
+          <i class="fa-solid fa-id-card"></i>
+        </div>
+        <h2 style="font-size:20px;color:#fff;margin-bottom:4px;">Passenger Registration</h2>
+        <p style="font-size:12px;color:#94a3b8;">Link your RC522 RFID Card & Get $150 Welcome Credits</p>
+      </div>
+
+      <form id="passenger-register-form">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="reg-name" class="form-control-custom" placeholder="John Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" id="reg-user" class="form-control-custom" placeholder="johndoe" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="reg-email" class="form-control-custom" placeholder="john@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="reg-pass" class="form-control-custom" placeholder="••••••••" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">RFID Smart Bus Card UID (Optional)</label>
+          <input type="text" id="reg-rfid" class="form-control-custom" placeholder="RFID_PASS_8820">
+        </div>
+
+        <button type="submit" class="btn-submit">Create Smart Bus Account</button>
+
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:#94a3b8;">
+          Already have an account? <a href="login.html" style="color:#38bdf8;font-weight:600;text-decoration:none;">Sign In</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.getElementById('passenger-register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const full_name = document.getElementById('reg-name').value;
+      const username = document.getElementById('reg-user').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-pass').value;
+      const rfid_card_id = document.getElementById('reg-rfid').value;
+
+      const res = await apiRequest('/auth/register', 'POST', {
+        full_name,
+        username,
+        email,
+        password,
+        rfid_card_id: rfid_card_id || undefined,
+        role: 'passenger'
+      });
+
+      if (res.success) {
+        showToast('Registration successful! You may now log in.', 'success');
+        setTimeout(() => window.location.href = 'login.html', 800);
+      } else {
+        showToast(res.message, 'danger');
+      }
+    });
+  </script>
+</body>
+</html>

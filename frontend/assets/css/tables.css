@@ -1,0 +1,89 @@
+/* ============================================================
+   SMART BUS - RESPONSIVE DATA TABLES
+   ============================================================ */
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.custom-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.custom-table th {
+  padding: 16px 20px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border-glass);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.custom-table td {
+  padding: 16px 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-glass);
+  vertical-align: middle;
+  transition: var(--transition);
+}
+
+.custom-table tbody tr {
+  transition: var(--transition);
+}
+
+.custom-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+}
+
+.custom-table .primary-cell {
+  font-weight: 600;
+  color: #fff;
+}
+
+.badge-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-tag.badge-success { background: rgba(16, 185, 129, 0.15); color: var(--accent-success); }
+.badge-tag.badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--accent-warning); }
+.badge-tag.badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--accent-danger); }
+.badge-tag.badge-info { background: rgba(56, 189, 248, 0.15); color: var(--accent-primary); }
+.badge-tag.badge-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); }
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.table-btn:hover {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+}

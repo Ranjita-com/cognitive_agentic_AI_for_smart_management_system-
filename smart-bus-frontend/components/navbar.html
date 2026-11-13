@@ -1,0 +1,43 @@
+<!-- Modular Admin Top Navbar Component -->
+<header class="admin-navbar">
+  <div class="nav-left">
+    <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+    <div class="live-indicator">
+      <div class="pulsing-dot"></div>
+      <span>ESP32 & Simulator Active</span>
+    </div>
+  </div>
+
+  <div class="nav-right">
+    <a href="../passenger/index.html" class="action-btn" target="_blank">
+      <i class="fa-solid fa-mobile-screen"></i> Passenger App View
+    </a>
+    <button class="action-btn btn-danger" onclick="triggerTestSos()">
+      <i class="fa-solid fa-triangle-exclamation"></i> Trigger SOS Test
+    </button>
+    <a href="notifications.html" class="action-btn" title="Alerts">
+      <i class="fa-solid fa-bell"></i>
+    </a>
+    <button class="action-btn" onclick="logoutAdmin()" title="Logout">
+      <i class="fa-solid fa-right-from-bracket"></i>
+    </button>
+  </div>
+</header>
+
+<script>
+async function triggerTestSos() {
+  const busId = prompt("Enter Bus ID to inject SOS Panic Alarm (1-4):", "1");
+  if (busId) {
+    const res = await apiRequest('/alerts/sos', 'POST', { bus_id: parseInt(busId) });
+    if (res.success) {
+      playEmergencyAlarm();
+      showToast(`EMERGENCY SOS Triggered on Bus #${busId}!`, 'danger');
+    }
+  }
+}
+
+async function logoutAdmin() {
+  await apiRequest('/auth/logout', 'POST');
+  window.location.href = 'login.html';
+}
+</script>

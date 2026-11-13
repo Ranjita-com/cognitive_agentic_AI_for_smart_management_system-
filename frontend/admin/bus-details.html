@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bus Telemetry Cockpit | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+  <!-- MediaPipe Face Mesh & Camera Utils for Live Automatic Eye Landmark Tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item active"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <a href="buses.html" class="action-btn" style="padding:6px 12px;"><i class="fa-solid fa-arrow-left"></i> Back</a>
+          <h1 class="page-title" id="bus-title-header">Bus Telemetry Cockpit</h1>
+        </div>
+        <div class="nav-right">
+          <a id="nav-driver-studio-btn" href="driver-recognition.html" class="action-btn btn-primary"><i class="fa-solid fa-eye"></i> Inspect Driver Face</a>
+          <button class="action-btn btn-danger" onclick="injectSosCurrentBus()"><i class="fa-solid fa-triangle-exclamation"></i> Trigger SOS</button>
+          <button class="action-btn" onclick="injectSurgeCurrentBus()"><i class="fa-solid fa-people-group"></i> Simulate Passenger Surge</button>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <!-- Top Telemetry Gauges Cluster -->
+        <div class="gauge-cluster" style="margin-bottom:24px;">
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-speed">0.0 km/h</div>
+            <div class="gauge-label"><i class="fa-solid fa-gauge"></i> GPS Speed</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-occupancy" style="color:#10b981;">0 / 6</div>
+            <div class="gauge-label"><i class="fa-solid fa-users"></i> Dual IR Count</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-battery" style="color:#38bdf8;">12.6V</div>
+            <div class="gauge-label"><i class="fa-solid fa-car-battery"></i> Battery ADC</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-temp" style="color:#f59e0b;">84.5°C</div>
+            <div class="gauge-label"><i class="fa-solid fa-temperature-high"></i> Engine Temp</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-health" style="color:#a855f7;">95%</div>
+            <div class="gauge-label"><i class="fa-solid fa-heart-pulse"></i> ML Health Index</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Live Camera Stream (Passenger Counting Role & Driver Webcam Mode) -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-video" style="color:#38bdf8;"></i> Onboard Camera & Vision Systems
+              </div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <button id="detail-tab-pass" class="action-btn btn-primary" onclick="setDetailCamMode('PASSENGER')" style="font-size:11px;padding:3px 8px;">Passenger (OV3660)</button>
+                <button id="detail-tab-driver" class="action-btn" onclick="setDetailCamMode('DRIVER')" style="font-size:11px;padding:3px 8px;background:transparent;">Driver Webcam</button>
+                <a id="detail-open-tab-btn" href="driver-recognition.html" target="_blank" class="action-btn" style="font-size:11px;padding:3px 8px;" title="Open in Next Tab">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Next Tab
+                </a>
+              </div>
+            </div>
+            <div class="section-body" style="padding:12px;display:flex;flex-direction:column;align-items:center;">
+              <div id="detail-pass-view" style="width:100%;display:flex;flex-direction:column;align-items:center;">
+                <img id="camera-stream-img" src="/api/buses/1/camera" style="width:100%;max-width:640px;border-radius:10px;border:1px solid var(--border-glass);" alt="Live Camera Stream">
+                <div style="margin-top:8px;font-size:11px;color:#94a3b8;text-align:center;">
+                  Physical OV3660 camera detects passenger occupancy & centroid tracking.
+                </div>
+              </div>
+
+              <div id="detail-driver-view" style="width:100%;display:none;flex-direction:column;align-items:center;">
+                <video id="detail-webcam-video" autoplay playsinline muted style="display:none;"></video>
+                <canvas id="detail-webcam-canvas" width="480" height="240" style="width:100%;max-width:480px;border-radius:8px;background:#111827;"></canvas>
+                <div style="display:flex;gap:6px;margin-top:8px;width:100%;max-width:480px;">
+                  <button class="action-btn btn-primary" id="detail-webcam-btn" onclick="toggleDetailWebcam()" style="flex:1;font-size:11px;padding:4px 8px;">
+                    <i class="fa-solid fa-video"></i> <span id="detail-webcam-btn-text">Enable Live Webcam</span>
+                  </button>
+                  <button class="action-btn" onclick="toggleDetailEyeClosure()" style="font-size:11px;padding:4px 8px;background:rgba(255,255,255,0.08);">
+                    <i class="fa-solid fa-eye-slash"></i> Test Eye Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bus Hardware Diagnostics Info -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-microchip" style="color:#10b981;"></i> ESP32-S3 IoT Diagnostics
+              </div>
+            </div>
+            <div class="section-body" style="font-size:13px;line-height:2;">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">Controller MAC:</span>
+                <span id="diag-mac" style="font-family:monospace;color:#fff;">ESP32_S3_E4:65:B8:10:01</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">GPS Satellites:</span>
+                <span style="color:#10b981;"><i class="fa-solid fa-satellite"></i> 8 Satellites Locked</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">RFID Reader (RC522):</span>
+                <span style="color:#38bdf8;">SPI Active (Tag: RFID_STOP_101)</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">I2C LCD 16x2:</span>
+                <span style="color:#fff;">Operational (0x27)</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">Assigned Driver:</span>
+                <span id="diag-driver" style="color:#fff;">Michael Vance</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">Driver Face & Attentiveness:</span>
+                <a id="driver-face-link" href="driver-recognition.html" target="_blank" class="action-btn btn-primary" style="padding:2px 10px;font-size:11px;">
+                  <i class="fa-solid fa-eye"></i> Open in Next Tab
+                </a>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span style="color:#94a3b8;">Assigned Route:</span>
+                <span id="diag-route" style="color:#fff;">Route 101 (Green Line)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const busId = parseInt(urlParams.get('bus_id')) || 1;
+    let detailCamMode = 'PASSENGER';
+    let detailWebcamStream = null;
+    let detailWebcamActive = false;
+    let detailEyesClosed = false;
+    let detailAnimId = null;
+    let detailTick = 0;
+    let currentBusNumber = 'SB-101';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadBusDetails();
+      // Refresh camera feed with live YOLO stream for real hardware bus
+      if (parseInt(busId) === 1) {
+        document.getElementById('camera-stream-img').src = `/api/camera/stream?t=${Date.now()}`;
+      } else {
+        document.getElementById('camera-stream-img').src = `/api/buses/${busId}/camera?t=${Date.now()}`;
+      }
+    });
+
+    function setDetailCamMode(mode) {
+      detailCamMode = mode;
+      const passTab = document.getElementById('detail-tab-pass');
+      const drivTab = document.getElementById('detail-tab-driver');
+      const passView = document.getElementById('detail-pass-view');
+      const drivView = document.getElementById('detail-driver-view');
+
+      if (mode === 'PASSENGER') {
+        passTab.className = 'action-btn btn-primary';
+        passTab.style.background = '';
+        drivTab.className = 'action-btn';
+        drivTab.style.background = 'transparent';
+        passView.style.display = 'flex';
+        drivView.style.display = 'none';
+        if (detailWebcamActive) toggleDetailWebcam();
+      } else {
+        drivTab.className = 'action-btn btn-primary';
+        drivTab.style.background = '';
+        passTab.className = 'action-btn';
+        passTab.style.background = 'transparent';
+        passView.style.display = 'none';
+        drivView.style.display = 'flex';
+        startDetailWebcamLoop();
+      }
+    }
+
+    let detailFaceMesh = null;
+    let detailLandmarks = null;
+    let detailConsecutiveClosed = 0;
+    let detailConsecutiveOpen = 0;
+    let detailProcessing = false;
+    let detailLastSync = 0;
+
+    function initDetailFaceMesh() {
+      if (typeof FaceMesh !== 'undefined' && !detailFaceMesh) {
+        try {
+          detailFaceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+          });
+          detailFaceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+          });
+          detailFaceMesh.onResults((res) => {
+            if (res && res.multiFaceLandmarks && res.multiFaceLandmarks.length > 0) {
+              detailLandmarks = res.multiFaceLandmarks[0];
+            } else {
+              detailLandmarks = null;
+            }
+          });
+        } catch (e) {
+          console.warn('[Detail FaceMesh Init]', e);
+        }
+      }
+    }
+
+    async function toggleDetailWebcam() {
+      const video = document.getElementById('detail-webcam-video');
+      const btnText = document.getElementById('detail-webcam-btn-text');
+
+      if (!detailWebcamActive) {
+        try {
+          initDetailFaceMesh();
+          detailWebcamStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: 480, height: 240, facingMode: 'user' } 
+          });
+          video.srcObject = detailWebcamStream;
+          await video.play();
+          detailWebcamActive = true;
+          btnText.textContent = 'Stop Webcam';
+          showToast('✅ Live driver webcam active! Automatic eye tracking engaged.', 'success');
+        } catch (e) {
+          showToast('Webcam unavailable. Using canvas facial landmark simulator.', 'warning');
+        }
+      } else {
+        if (detailWebcamStream) {
+          detailWebcamStream.getTracks().forEach(t => t.stop());
+          detailWebcamStream = null;
+        }
+        detailWebcamActive = false;
+        btnText.textContent = 'Enable Live Webcam';
+        showToast('Switched to Driver Simulation mode.', 'info');
+      }
+    }
+
+    function toggleDetailEyeClosure() {
+      detailEyesClosed = !detailEyesClosed;
+      syncDetailDrowsinessState(detailEyesClosed ? 'SLIGHT_SLEEPY' : 'ACTIVE', detailEyesClosed ? 0.14 : 0.32);
+    }
+
+    async function syncDetailDrowsinessState(state, ear) {
+      const now = Date.now();
+      if (now - detailLastSync < 2000) return;
+      detailLastSync = now;
+
+      const isDrowsy = (state === 'SLIGHT_SLEEPY');
+      const res = await apiRequest('/drivers/inspect-face', 'POST', {
+        bus_number: currentBusNumber,
+        state: state,
+        ear: ear,
+        confidence: 0.96
+      });
+
+      if (res && res.success) {
+        if (isDrowsy) {
+          playEmergencyAlarm();
+          showToast(`🚨 AUTOMATIC DROWSINESS ALERT: ${currentBusNumber} Driver is SLIGHT SLEEPY (EAR: ${ear.toFixed(2)})!`, 'danger');
+        } else {
+          showToast(`${currentBusNumber} Driver restored to ACTIVE state.`, 'success');
+        }
+      }
+    }
+
+    function startDetailWebcamLoop() {
+      if (detailAnimId) return;
+      const canvas = document.getElementById('detail-webcam-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const video = document.getElementById('detail-webcam-video');
+
+      function draw() {
+        detailTick++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let liveEAR = 0.32;
+
+        if (detailWebcamActive && video.readyState >= 2) {
+          if (detailFaceMesh && !detailProcessing) {
+            detailProcessing = true;
+            detailFaceMesh.send({ image: video })
+              .catch(e => {})
+              .finally(() => { detailProcessing = false; });
+          }
+
+          ctx.save();
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          ctx.restore();
+
+          if (detailLandmarks && detailLandmarks.length >= 468) {
+            const p33 = detailLandmarks[33], p133 = detailLandmarks[133], p160 = detailLandmarks[160], p144 = detailLandmarks[144];
+            const p263 = detailLandmarks[263], p362 = detailLandmarks[362], p385 = detailLandmarks[385], p380 = detailLandmarks[380];
+
+            const leftH = Math.hypot((p33.x - p133.x) * canvas.width, (p33.y - p133.y) * canvas.height);
+            const leftV = Math.hypot((p160.x - p144.x) * canvas.width, (p160.y - p144.y) * canvas.height);
+            const leftEAR = leftH > 0 ? (leftV / leftH) : 0.3;
+
+            const rightH = Math.hypot((p263.x - p362.x) * canvas.width, (p263.y - p362.y) * canvas.height);
+            const rightV = Math.hypot((p385.x - p380.x) * canvas.width, (p380.y - p380.y) * canvas.height);
+            const rightEAR = rightH > 0 ? (rightV / rightH) : 0.3;
+
+            liveEAR = (leftEAR + rightEAR) / 2.0;
+          } else {
+            liveEAR = detailEyesClosed ? 0.14 : 0.32;
+          }
+
+          if (detailEyesClosed) liveEAR = 0.14;
+
+          // Auto-detect Eye Closure (< 0.20)
+          if (liveEAR < 0.20) {
+            detailConsecutiveClosed++;
+            detailConsecutiveOpen = 0;
+            if (detailConsecutiveClosed >= 18 && !detailEyesClosed) {
+              detailEyesClosed = true;
+              syncDetailDrowsinessState('SLIGHT_SLEEPY', liveEAR);
+            }
+          } else {
+            detailConsecutiveOpen++;
+            detailConsecutiveClosed = 0;
+            if (detailConsecutiveOpen >= 10 && detailEyesClosed) {
+              detailEyesClosed = false;
+              syncDetailDrowsinessState('ACTIVE', liveEAR);
+            }
+          }
+
+          const isDrowsy = detailEyesClosed || liveEAR < 0.20;
+          const cx = canvas.width / 2;
+          const cy = canvas.height / 2;
+
+          ctx.strokeStyle = isDrowsy ? '#ef4444' : '#10b981';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(cx - 50, cy - 60, 100, 120);
+
+          ctx.fillStyle = isDrowsy ? '#ef4444' : '#38bdf8';
+          ctx.beginPath();
+          ctx.ellipse(cx - 20, cy - 10, 8, isDrowsy ? 2 : 6, 0, 0, Math.PI * 2);
+          ctx.ellipse(cx + 20, cy - 10, 8, isDrowsy ? 2 : 6, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = isDrowsy ? '#ef4444' : '#10b981';
+          ctx.font = '11px monospace';
+          ctx.fillText(`EAR: ${liveEAR.toFixed(2)} [${isDrowsy ? 'SLIGHT SLEEPY' : 'ACTIVE'}]`, cx - 58, cy + 74);
+        } else {
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          const cx = canvas.width / 2;
+          const cy = canvas.height / 2;
+          const isDrowsy = detailEyesClosed;
+          liveEAR = isDrowsy ? 0.14 : 0.32;
+
+          ctx.fillStyle = 'rgba(51, 65, 85, 0.7)';
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, 45, 60, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = isDrowsy ? '#ef4444' : '#10b981';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          ctx.fillStyle = isDrowsy ? '#ef4444' : '#38bdf8';
+          ctx.beginPath();
+          ctx.ellipse(cx - 16, cy - 10, 7, isDrowsy ? 1.5 : 5, 0, 0, Math.PI * 2);
+          ctx.ellipse(cx + 16, cy - 10, 7, isDrowsy ? 1.5 : 5, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = isDrowsy ? '#ef4444' : '#10b981';
+          ctx.font = '11px monospace';
+          ctx.fillText(`EAR: ${liveEAR.toFixed(2)} (${isDrowsy ? 'SLIGHT SLEEPY' : 'ACTIVE'})`, cx - 60, cy + 75);
+        }
+
+        detailAnimId = requestAnimationFrame(draw);
+      }
+
+      detailAnimId = requestAnimationFrame(draw);
+    }
+
+    async function loadBusDetails() {
+      const res = await apiRequest(`/buses/${busId}`);
+      if (res && res.bus) {
+        const b = res.bus;
+        currentBusNumber = b.bus_number;
+        document.getElementById('bus-title-header').textContent = `Bus ${b.bus_number} Telemetric Cockpit`;
+        document.getElementById('g-speed').textContent = `${b.speed.toFixed(1)} km/h`;
+        document.getElementById('g-occupancy').textContent = `${b.current_passengers} / ${b.capacity}`;
+        document.getElementById('g-battery').textContent = `${b.battery_voltage.toFixed(2)}V`;
+        document.getElementById('g-temp').textContent = `${b.engine_temp.toFixed(1)}°C`;
+        document.getElementById('g-health').textContent = `${b.health_score.toFixed(0)}%`;
+        document.getElementById('diag-mac').textContent = b.device_mac;
+        document.getElementById('diag-driver').textContent = b.driver_name;
+        document.getElementById('diag-route').textContent = b.route_name || 'Active Route';
+        
+        const faceUrl = `driver-recognition.html?bus=${b.bus_number}`;
+        const faceLink = document.getElementById('driver-face-link');
+        const navFaceBtn = document.getElementById('nav-driver-studio-btn');
+        const openTabBtn = document.getElementById('detail-open-tab-btn');
+        if (faceLink) faceLink.href = faceUrl;
+        if (navFaceBtn) navFaceBtn.href = faceUrl;
+        if (openTabBtn) openTabBtn.href = faceUrl;
+      }
+    }
+
+    document.addEventListener('busTelemetryUpdate', (e) => {
+      if (e.detail && e.detail.bus && e.detail.bus.id === busId) {
+        loadBusDetails();
+        document.getElementById('camera-stream-img').src = `/api/buses/${busId}/camera?t=${Date.now()}`;
+      }
+    });
+
+    async function injectSosCurrentBus() {
+      const res = await apiRequest('/alerts/sos', 'POST', { bus_id: busId });
+      if (res.success) {
+        playEmergencyAlarm();
+        showToast(`EMERGENCY SOS Triggered on Bus #${busId}!`, 'danger');
+      }
+    }
+
+    async function injectSurgeCurrentBus() {
+      const res = await apiRequest('/simulation/inject-event', 'POST', { bus_id: busId, event_type: 'PASSENGER_SURGE' });
+      if (res.success) {
+        showToast(`Passenger surge injected into Bus #${busId}!`, 'warning');
+      }
+    }
+  </script>
+</body>
+</html>

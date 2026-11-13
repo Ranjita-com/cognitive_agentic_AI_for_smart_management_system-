@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alerts Hub & Notifications | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item active"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <h1 class="page-title">Fleet Alerts Hub & Broadcast Center</h1>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <div class="dashboard-grid">
+          <!-- Notification Feed -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-bell" style="color:#ef4444;"></i> System Event & Alert Stream</div>
+            </div>
+            <div class="section-body" id="full-notification-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Broadcast Push Message Form -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-bullhorn" style="color:#38bdf8;"></i> Broadcast Fleet Alert</div>
+            </div>
+            <div class="section-body">
+              <form id="broadcast-alert-form">
+                <div class="form-group">
+                  <label class="form-label">Alert Severity</label>
+                  <select id="broadcast-severity" class="form-control-custom">
+                    <option value="INFO">Informational (Blue)</option>
+                    <option value="WARNING">Operational Warning (Amber)</option>
+                    <option value="CRITICAL">Emergency Priority (Red)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Broadcast Message Content</label>
+                  <textarea id="broadcast-msg" class="form-control-custom" rows="4" placeholder="e.g. Severe rain near Central Station. Reduce speed on Route 101 to 30 km/h." required></textarea>
+                </div>
+                <button type="submit" class="btn-submit">
+                  <i class="fa-solid fa-paper-plane"></i> Dispatch Alert to All Terminals
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script src="../assets/js/notifications.js"></script>
+</body>
+</html>

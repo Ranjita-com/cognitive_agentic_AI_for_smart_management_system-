@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live GIS Fleet Map | Smart Bus Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/map.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item active"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <h1 class="page-title">Real-Time GIS Fleet Tracking Map</h1>
+          <div class="live-indicator"><div class="pulsing-dot"></div><span>WebSocket Telemetry Active</span></div>
+        </div>
+        <div class="nav-right">
+          <select id="map-bus-focus" class="form-control-custom" style="width:230px;padding:6px 10px;font-size:12px;" onchange="focusBusOnMap(this.value)">
+            <option value="">-- Focus Tracked Bus --</option>
+            <option value="1">🟢 SB-101 (Line 101 - REAL PHYSICAL IoT)</option>
+            <option value="2">🔵 SB-102 (Line 202 - Airport Direct SIM)</option>
+            <option value="3">🔴 SB-103 (Line 303 - City Circular SIM)</option>
+            <option value="4">🟢 SB-104 (Line 101 - Relief / Standby)</option>
+          </select>
+          <button class="action-btn btn-danger" onclick="injectSosFromMap()"><i class="fa-solid fa-triangle-exclamation"></i> Trigger SOS</button>
+        </div>
+      </header>
+
+      <div class="admin-content" style="padding:20px;display:flex;flex-direction:column;flex:1;">
+        <div class="glass-panel" style="flex:1;position:relative;border-radius:16px;overflow:hidden;">
+          <div id="full-fleet-map" class="map-container map-full-screen"></div>
+
+          <!-- Floating Map Controls & Multi-Route Corridor Legend -->
+          <div class="glass-panel map-floating-panel">
+            <h4 style="font-size:14px;margin-bottom:8px;color:#fff;"><i class="fa-solid fa-sliders" style="color:#38bdf8;"></i> Map Layers & Corridors</h4>
+            <div style="font-size:12px;display:flex;flex-direction:column;gap:6px;color:#cbd5e1;">
+              <label style="cursor:pointer;"><input type="checkbox" id="layer-routes" checked> Route Corridors (Green/Blue/Red)</label>
+              <label style="cursor:pointer;"><input type="checkbox" id="layer-stops" checked> Transit Stops & RFID Sensors</label>
+            </div>
+            
+            <div id="map-route-legend-container" style="margin-top:10px;"></div>
+
+            <hr style="border:0;border-top:1px solid var(--border-glass);margin:10px 0;">
+            <div style="font-size:11px;color:#94a3b8;display:flex;align-items:center;justify-content:space-between;">
+              <span><i class="fa-solid fa-satellite-dish" style="color:#10b981;"></i> SB-101: Physical ESP32</span>
+              <span><i class="fa-solid fa-microchip" style="color:#38bdf8;"></i> SB-102/103: Auto Sim</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script src="../assets/js/map.js"></script>
+  <script>
+    let fullMap = null;
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bId = urlParams.get('bus_id');
+
+      fullMap = new SmartBusMap('full-fleet-map');
+      if (bId) {
+        fullMap.selectedBusId = parseInt(bId);
+        const focusSelect = document.getElementById('map-bus-focus');
+        if (focusSelect) focusSelect.value = bId;
+      }
+      fullMap.init([12.9850, 77.6100], 13);
+
+      // Layer Toggles
+      document.getElementById('layer-routes')?.addEventListener('change', (e) => {
+        const show = e.target.checked;
+        Object.values(fullMap.routeLayers).forEach(l => show ? l.addTo(fullMap.map) : l.remove());
+        Object.values(fullMap.haloLayers).forEach(l => show ? l.addTo(fullMap.map) : l.remove());
+      });
+
+      document.getElementById('layer-stops')?.addEventListener('change', (e) => {
+        const show = e.target.checked;
+        Object.values(fullMap.stopMarkers).forEach(m => show ? m.addTo(fullMap.map) : m.remove());
+      });
+    });
+
+    function focusBusOnMap(busId) {
+      if (busId && fullMap) {
+        fullMap.selectBus(parseInt(busId));
+      }
+    }
+
+    async function injectSosFromMap() {
+      const busId = document.getElementById('map-bus-focus').value || 1;
+      const res = await apiRequest('/alerts/sos', 'POST', { bus_id: parseInt(busId) });
+      if (res.success) {
+        playEmergencyAlarm();
+        showToast(`EMERGENCY SOS Triggered on Bus #${busId}!`, 'danger');
+      }
+    }
+  </script>
+</body>
+</html>

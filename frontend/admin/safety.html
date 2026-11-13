@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety & Emergency SOS Command | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item active"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <h1 class="page-title">Safety Agent & Emergency Command Hub</h1>
+        </div>
+        <div class="nav-right">
+          <a href="driver-recognition.html" class="action-btn btn-primary"><i class="fa-solid fa-eye"></i> Driver Face Studio</a>
+          <button class="action-btn btn-danger" onclick="injectSosTest()"><i class="fa-solid fa-triangle-exclamation"></i> Trigger SOS Test</button>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <!-- Active Emergency Alert Banner -->
+        <div id="sos-active-banner" style="display:none;background:linear-gradient(135deg, rgba(239,68,68,0.25), rgba(185,28,28,0.3));border:2px solid #ef4444;border-radius:14px;padding:20px 24px;margin-bottom:24px;display:none;align-items:center;justify-content:space-between;animation:pulse 1s infinite;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:32px;color:#ef4444;"></i>
+            <div>
+              <h3 style="color:#fff;font-size:18px;margin:0 0 4px;">CRITICAL: ACTIVE EMERGENCY SOS DETECTED</h3>
+              <p id="sos-banner-msg" style="color:#fca5a5;font-size:13px;margin:0;">Bus SB-102 emergency button pressed! Lat: 12.9860, Lng: 77.6110</p>
+            </div>
+          </div>
+          <button class="action-btn btn-primary" onclick="resolveActiveSos()">Resolve Emergency & Clear Siren</button>
+        </div>
+
+        <!-- Driver Face Recognition & Attentiveness Monitor Section -->
+        <div class="glass-panel" style="margin-bottom:24px;">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fa-solid fa-eye" style="color:#38bdf8;"></i> Driver Face Recognition & Attentiveness Status
+            </div>
+            <a href="driver-recognition.html" class="action-btn btn-primary" style="font-size:12px;padding:4px 10px;">
+              <i class="fa-solid fa-expand"></i> Open Face Recognition Studio
+            </a>
+          </div>
+          <div class="section-body">
+            <div class="card-grid" id="driver-attentive-grid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Overcrowding Monitor Grid -->
+        <div class="glass-panel" style="margin-bottom:24px;">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fa-solid fa-users-viewfinder" style="color:#f59e0b;"></i> Real-Time Overcrowding & Passenger Flux Monitor
+            </div>
+            <span class="badge-tag badge-warning">Dual IR Sensor Stream</span>
+          </div>
+          <div class="section-body">
+            <div class="card-grid" id="safety-bus-grid">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Safety Violations & Alerts Log -->
+        <div class="glass-panel">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fa-solid fa-shield-halved" style="color:#10b981;"></i> Safety Agent Violation Logs (Overspeed, SOS, Overcrowding)
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Bus Number</th>
+                  <th>Alert Type</th>
+                  <th>Severity</th>
+                  <th>Message / Violation Details</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="safety-logs-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSafetyData();
+    });
+
+    async function loadSafetyData() {
+      const [busesRes, alertsRes, sosRes, attentiveRes] = await Promise.all([
+        apiRequest('/buses'),
+        apiRequest('/alerts?limit=25'),
+        apiRequest('/alerts/active-sos'),
+        apiRequest('/drivers/attentiveness-status')
+      ]);
+
+      // Check SOS Banner
+      const sosBanner = document.getElementById('sos-active-banner');
+      if (sosRes && sosRes.alerts && sosRes.alerts.length > 0) {
+        sosBanner.style.display = 'flex';
+        document.getElementById('sos-banner-msg').textContent = `${sosRes.alerts[0].message} (Lat: ${sosRes.alerts[0].latitude}, Lng: ${sosRes.alerts[0].longitude})`;
+      } else {
+        sosBanner.style.display = 'none';
+      }
+
+      // Render Driver Attentiveness Grid
+      const attentiveGrid = document.getElementById('driver-attentive-grid');
+      if (attentiveRes && attentiveRes.drivers && attentiveGrid) {
+        attentiveGrid.innerHTML = attentiveRes.drivers.map(d => {
+          const isSleepy = (d.attentiveness_state === 'SLIGHT_SLEEPY' || d.drowsiness_detected);
+          const color = isSleepy ? '#ef4444' : '#10b981';
+          return `
+            <div class="glass-panel" style="padding:16px;border-left:4px solid ${color};">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div>
+                  <b style="color:#fff;font-size:15px;">${d.bus_number}</b>
+                  <div style="font-size:12px;color:#94a3b8;">${d.driver_name}</div>
+                </div>
+                <span class="badge-tag" style="background:${color}22;color:${color};font-size:10px;">
+                  <i class="fa-solid ${isSleepy ? 'fa-moon' : 'fa-circle-check'}"></i> ${isSleepy ? 'SLIGHT SLEEPY' : 'ACTIVE'}
+                </span>
+              </div>
+              <div style="font-size:12px;color:#cbd5e1;margin-bottom:6px;">
+                Eye Aspect Ratio (EAR): <b style="color:${color};font-family:monospace;">${(d.ear_metric || 0.32).toFixed(2)}</b>
+              </div>
+              <div style="font-size:11px;color:#64748b;margin-bottom:12px;">
+                Attentiveness: <b style="color:#fff;">${d.attentiveness_score || 90}%</b> &bull; Status: ${d.status_description || 'Nominal'}
+              </div>
+              <a href="driver-recognition.html?bus=${d.bus_number}" class="action-btn ${isSleepy ? 'btn-danger' : 'btn-primary'}" style="font-size:11px;padding:5px 10px;width:100%;text-align:center;display:block;">
+                <i class="fa-solid fa-eye"></i> Inspect Face in Studio
+              </a>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render Overcrowding Grid
+      const busGrid = document.getElementById('safety-bus-grid');
+      if (busesRes && busesRes.buses && busGrid) {
+        busGrid.innerHTML = busesRes.buses.map(b => {
+          const occ = b.occupancy_rate || 0;
+          const statusColor = occ > 95 ? '#ef4444' : (occ > 80 ? '#f59e0b' : '#10b981');
+          return `
+            <div class="glass-panel" style="padding:18px;border-left:4px solid ${statusColor};">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <b style="color:#fff;font-size:16px;">${b.bus_number}</b>
+                <span class="badge-tag" style="background:${statusColor}22;color:${statusColor};">${occ > 95 ? 'CRITICAL CROWD' : (occ > 80 ? 'HIGH LOAD' : 'NOMINAL')}</span>
+              </div>
+              <div style="font-size:13px;color:#94a3b8;margin-bottom:12px;">
+                Occupancy: <b>${b.current_passengers} / ${b.capacity}</b> (${occ.toFixed(0)}%)
+              </div>
+              <div class="progress-bar-custom" style="margin-bottom:12px;">
+                <div class="progress-fill" style="width:${occ}%;background:${statusColor};"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;">
+                <span>Speed: ${b.speed.toFixed(1)} km/h</span>
+                <span>Safety Score: <b style="color:#38bdf8;">${b.safety_score.toFixed(0)}%</b></span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render Safety Log
+      const logsBody = document.getElementById('safety-logs-body');
+      if (alertsRes && alertsRes.alerts && logsBody) {
+        logsBody.innerHTML = alertsRes.alerts.map(a => `
+          <tr>
+            <td>${new Date(a.created_at).toLocaleString()}</td>
+            <td><b>${a.bus_number}</b></td>
+            <td><span class="badge-tag badge-${a.severity === 'CRITICAL' ? 'danger' : (a.severity === 'WARNING' ? 'warning' : 'info')}">${a.alert_type}</span></td>
+            <td><b>${a.severity}</b></td>
+            <td>${a.message}</td>
+            <td><span class="badge-tag badge-${a.status === 'ACTIVE' ? 'danger' : 'success'}">${a.status}</span></td>
+            <td>
+              ${a.status === 'ACTIVE' ? `<button class="action-btn btn-primary" style="padding:4px 10px;font-size:11px;" onclick="resolveSafetyAlert(${a.id})">Resolve</button>` : `<span style="color:#64748b;font-size:12px;">Resolved</span>`}
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    async function resolveSafetyAlert(id) {
+      const res = await apiRequest(`/alerts/${id}/resolve`, 'PUT');
+      if (res.success) {
+        showToast('Alert resolved.', 'success');
+        loadSafetyData();
+      }
+    }
+
+    async function resolveActiveSos() {
+      const res = await apiRequest('/alerts/active-sos');
+      if (res && res.alerts && res.alerts.length > 0) {
+        await apiRequest(`/alerts/${res.alerts[0].id}/resolve`, 'PUT');
+        showToast('Active emergency resolved.', 'success');
+        loadSafetyData();
+      }
+    }
+
+    async function injectSosTest() {
+      const res = await apiRequest('/alerts/sos', 'POST', { bus_id: 1 });
+      if (res.success) {
+        playEmergencyAlarm();
+        showToast('Emergency SOS Injected!', 'danger');
+        loadSafetyData();
+      }
+    }
+
+    document.addEventListener('emergencySosAlert', () => {
+      loadSafetyData();
+    });
+
+    document.addEventListener('busTelemetryUpdate', () => {
+      loadSafetyData();
+    });
+  </script>
+</body>
+</html>

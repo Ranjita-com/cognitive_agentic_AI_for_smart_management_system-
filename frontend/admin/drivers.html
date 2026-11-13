@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Fleet Roster | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item active"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <div>
+            <h1 class="page-title">Drivers Roster & Attentiveness Monitor</h1>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Live Face Recognition Inspection & Driver Safety Scores</div>
+          </div>
+        </div>
+        <div class="nav-right">
+          <a href="driver-recognition.html" class="action-btn btn-primary">
+            <i class="fa-solid fa-eye"></i> Open Driver Face Studio
+          </a>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <div class="glass-panel">
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Driver Name</th>
+                  <th>License #</th>
+                  <th>Contact Phone</th>
+                  <th>Assigned Bus</th>
+                  <th>Facial Attentiveness State</th>
+                  <th>Safety Violations</th>
+                  <th>Duty Status</th>
+                  <th>Rating</th>
+                  <th>Recognition Action</th>
+                </tr>
+              </thead>
+              <tbody id="drivers-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', loadDrivers);
+
+    async function loadDrivers() {
+      const [resDrivers, resAttentive] = await Promise.all([
+        apiRequest('/drivers'),
+        apiRequest('/drivers/attentiveness-status')
+      ]);
+
+      const attentiveMap = {};
+      if (resAttentive && resAttentive.drivers) {
+        resAttentive.drivers.forEach(d => {
+          attentiveMap[d.bus_number] = d;
+        });
+      }
+
+      const tbody = document.getElementById('drivers-table-body');
+      if (resDrivers && resDrivers.drivers && tbody) {
+        tbody.innerHTML = resDrivers.drivers.map(d => {
+          const att = attentiveMap[d.assigned_bus] || {};
+          const isSleepy = (att.attentiveness_state === 'SLIGHT_SLEEPY' || att.drowsiness_detected);
+          const stateLabel = isSleepy ? 'SLIGHT SLEEPY' : (att.attentiveness_state || 'ACTIVE');
+          const stateBadge = isSleepy ? 
+            `<span class="badge-tag badge-danger" style="font-size:11px;"><i class="fa-solid fa-moon"></i> ${stateLabel} (EAR: ${(att.ear_metric || 0.18).toFixed(2)})</span>` : 
+            `<span class="badge-tag badge-success" style="font-size:11px;"><i class="fa-solid fa-circle-check"></i> ${stateLabel} (EAR: ${(att.ear_metric || 0.32).toFixed(2)})</span>`;
+
+          return `
+            <tr>
+              <td class="primary-cell">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <img src="${d.avatar}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid ${isSleepy ? '#ef4444' : '#10b981'};" alt="Avatar">
+                  <div>
+                    <b style="color:#fff;">${d.name}</b>
+                    <div style="font-size:11px;color:#64748b;">${d.email || ''}</div>
+                  </div>
+                </div>
+              </td>
+              <td><code style="color:#38bdf8;background:rgba(56,189,248,0.1);padding:2px 6px;border-radius:4px;">${d.license_number}</code></td>
+              <td>${d.phone}</td>
+              <td><b style="color:#38bdf8;">${d.assigned_bus}</b></td>
+              <td>${stateBadge}</td>
+              <td>
+                <span class="badge-tag badge-${d.safety_violations > 0 ? 'warning' : 'success'}">
+                  ${d.safety_violations} Violations
+                </span>
+              </td>
+              <td><span class="badge-tag badge-success">${d.status.toUpperCase()}</span></td>
+              <td><span style="color:#f59e0b;font-weight:700;">★ ${d.rating.toFixed(1)}</span></td>
+              <td>
+                <a href="driver-recognition.html?bus=${d.assigned_bus}" class="action-btn ${isSleepy ? 'btn-danger' : 'btn-primary'}" style="padding:5px 12px;font-size:11px;display:inline-flex;align-items:center;gap:5px;">
+                  <i class="fa-solid fa-eye"></i> Inspect Face
+                </a>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+  </script>
+</body>
+</html>

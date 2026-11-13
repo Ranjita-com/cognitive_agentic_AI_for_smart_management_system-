@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Settings & Simulator Controls | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item active"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <h1 class="page-title">System Settings & Multi-Bus Simulator Panel</h1>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <div class="dashboard-grid">
+          <!-- Simulation Engine Controls -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-gamepad" style="color:#38bdf8;"></i> Multi-Bus Simulator Engine</div>
+              <span id="sim-status-badge" class="badge-tag badge-success">RUNNING</span>
+            </div>
+            <div class="section-body">
+              <p style="font-size:13px;color:#94a3b8;margin-bottom:16px;">
+                Simulates real-world GPS polyline physics, stop dwell times, dual IR passenger boardings/alightings, RFID stop tag reads, and vehicle sensor telemetry for all fleet buses.
+              </p>
+              <div style="display:flex;gap:10px;margin-bottom:20px;">
+                <button class="action-btn btn-primary" onclick="startSim()"><i class="fa-solid fa-play"></i> Start Simulator</button>
+                <button class="action-btn" onclick="stopSim()"><i class="fa-solid fa-pause"></i> Pause Simulator</button>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Simulation Speed Multiplier</label>
+                <div style="display:flex;gap:8px;">
+                  <button class="action-btn" onclick="setSimSpeed(1.0)">1x Normal</button>
+                  <button class="action-btn" onclick="setSimSpeed(2.0)">2x Fast</button>
+                  <button class="action-btn" onclick="setSimSpeed(5.0)">5x Hyper</button>
+                </div>
+              </div>
+
+              <hr style="border:0;border-top:1px solid var(--border-glass);margin:20px 0;">
+
+              <h4 style="font-size:14px;color:#fff;margin-bottom:12px;"><i class="fa-solid fa-vial" style="color:#a855f7;"></i> Synthetic Event Injector</h4>
+              <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                <button class="action-btn btn-danger" onclick="injectSimEvent('SOS_TRIGGER')">
+                  <i class="fa-solid fa-triangle-exclamation"></i> Inject SOS Panic
+                </button>
+                <button class="action-btn" style="border-color:#f59e0b;color:#f59e0b;" onclick="injectSimEvent('PASSENGER_SURGE')">
+                  <i class="fa-solid fa-users"></i> Inject Overcrowding Surge
+                </button>
+                <button class="action-btn" style="border-color:#ef4444;color:#ef4444;" onclick="injectSimEvent('HIGH_ENGINE_TEMP')">
+                  <i class="fa-solid fa-temperature-arrow-up"></i> Inject Engine Overheat
+                </button>
+                <button class="action-btn" style="border-color:#10b981;color:#10b981;" onclick="injectSimEvent('RESET_NORMAL')">
+                  <i class="fa-solid fa-rotate-left"></i> Reset to Nominal Values
+                </button>
+                <button class="action-btn" style="border-color:#38bdf8;color:#38bdf8;font-weight:700;" onclick="resetFleetData()">
+                  <i class="fa-solid fa-arrows-rotate"></i> Reset Entire Fleet & Routes (Undo Swaps)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Thresholds & Endpoints -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-sliders" style="color:#10b981;"></i> Agent Safety & Diagnostic Thresholds</div>
+            </div>
+            <div class="section-body">
+              <div class="form-group">
+                <label class="form-label">Overcrowding Warning Level</label>
+                <input type="text" class="form-control-custom" value="80% Occupancy" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fleet Speed Limit</label>
+                <input type="text" class="form-control-custom" value="65.0 km/h (Safety Agent enforced)" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Maximum Nominal Engine Temperature</label>
+                <input type="text" class="form-control-custom" value="95.0 °C (Maintenance Agent enforced)" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ESP32-S3 HTTP Ingestion Endpoint</label>
+                <input type="text" class="form-control-custom" style="font-family:monospace;color:#38bdf8;" value="/api/esp32/telemetry" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    async function startSim() {
+      const res = await apiRequest('/simulation/start', 'POST');
+      if (res.success) {
+        showToast('Simulator engine started!', 'success');
+        document.getElementById('sim-status-badge').textContent = 'RUNNING';
+        document.getElementById('sim-status-badge').className = 'badge-tag badge-success';
+      }
+    }
+
+    async function stopSim() {
+      const res = await apiRequest('/simulation/stop', 'POST');
+      if (res.success) {
+        showToast('Simulator engine paused.', 'warning');
+        document.getElementById('sim-status-badge').textContent = 'PAUSED';
+        document.getElementById('sim-status-badge').className = 'badge-tag badge-warning';
+      }
+    }
+
+    async function setSimSpeed(speed) {
+      const res = await apiRequest('/simulation/speed', 'POST', { speed });
+      if (res.success) {
+        showToast(`Simulation speed set to ${speed}x!`, 'info');
+      }
+    }
+
+    async function injectSimEvent(eventType) {
+      const res = await apiRequest('/simulation/inject-event', 'POST', { bus_id: 1, event_type: eventType });
+      if (res.success) {
+        showToast(res.message, 'success');
+      }
+    }
+  </script>
+</body>
+</html>

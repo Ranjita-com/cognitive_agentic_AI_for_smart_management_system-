@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Smart Bus Pass & Profile | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+          <h2 class="passenger-title">Rider Pass & Profile</h2>
+        </div>
+        <a href="login.html" class="action-btn" style="padding:4px 10px;font-size:11px;">Sign Out</a>
+      </div>
+    </div>
+
+    <div style="padding:20px;">
+      <!-- Digital RFID Smart Card Pass -->
+      <div style="background:linear-gradient(135deg, #0284c7, #6366f1);border-radius:20px;padding:24px;color:#fff;box-shadow:0 15px 30px rgba(2,132,199,0.4);position:relative;overflow:hidden;margin-bottom:20px;">
+        <div style="position:absolute;top:-20px;right:-20px;font-size:120px;opacity:0.1;color:#fff;"><i class="fa-solid fa-wifi"></i></div>
+        
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+          <div style="font-size:12px;font-weight:700;letter-spacing:0.1em;">SMART BUS TRANSIT PASS</div>
+          <i class="fa-solid fa-rss" style="font-size:20px;"></i>
+        </div>
+
+        <div style="font-size:28px;font-weight:800;letter-spacing:0.05em;margin-bottom:24px;" id="pass-balance-val">₹250.00</div>
+
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;">
+          <div>
+            <div style="font-size:10px;opacity:0.8;text-transform:uppercase;">Pass Holder</div>
+            <div style="font-size:15px;font-weight:700;">John Traveler</div>
+          </div>
+          <div>
+            <div style="font-size:10px;opacity:0.8;text-transform:uppercase;">RFID UID</div>
+            <div style="font-size:13px;font-family:monospace;font-weight:600;">RFID_PASS_7741</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Recharge Action -->
+      <div class="glass-panel" style="padding:18px;border-radius:14px;margin-bottom:20px;">
+        <h4 style="font-size:14px;color:#fff;margin-bottom:12px;"><i class="fa-solid fa-wallet" style="color:#10b981;"></i> Quick Wallet Top-Up</h4>
+        <div style="display:flex;gap:10px;">
+          <button class="action-btn btn-primary" style="flex:1;" onclick="topUpPass(50)">+₹50</button>
+          <button class="action-btn btn-primary" style="flex:1;" onclick="topUpPass(100)">+₹100</button>
+          <button class="action-btn btn-primary" style="flex:1;" onclick="topUpPass(500)">+₹500</button>
+        </div>
+      </div>
+
+      <!-- Feedback & Lost Property Assistance -->
+      <div class="glass-panel" style="padding:18px;border-radius:14px;margin-bottom:20px;">
+        <h4 style="font-size:14px;color:#fff;margin-bottom:12px;"><i class="fa-solid fa-comment-dots" style="color:#ec4899;"></i> Rider Support & Feedback</h4>
+        <div style="display:flex;gap:10px;">
+          <a href="feedback.html" class="action-btn btn-primary" style="flex:1;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;">
+            <i class="fa-solid fa-star"></i> Rate Trip
+          </a>
+          <a href="feedback.html" class="action-btn" style="flex:1;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,0.08);color:#fff;">
+            <i class="fa-solid fa-box-open"></i> Lost Property
+          </a>
+        </div>
+      </div>
+
+      <!-- Recent Trips History -->
+      <div class="glass-panel" style="padding:18px;border-radius:14px;">
+        <h4 style="font-size:14px;color:#fff;margin-bottom:12px;"><i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i> Recent Trips</h4>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border-glass);">
+            <div>
+              <b style="color:#fff;">Route 101 Express</b>
+              <div style="font-size:11px;color:#64748b;">Hospital Stop ➔ Bus Terminal</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="color:#ef4444;font-weight:700;">-₹30.00</span>
+              <div style="font-size:10px;color:#64748b;">Today, 08:35 AM</div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">
+            <div>
+              <b style="color:#fff;">Route 202 Airport</b>
+              <div style="font-size:11px;color:#64748b;">Airport T1 ➔ Downtown</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="color:#ef4444;font-weight:700;">-₹65.00</span>
+              <div style="font-size:10px;color:#64748b;">Yesterday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    async function topUpPass(amount) {
+      const res = await apiRequest('/passenger/pass/recharge', 'POST', {
+        card_uid: 'RFID_PASS_7741',
+        amount: amount
+      });
+      if (res.success) {
+        showToast(res.message, 'success');
+        document.getElementById('pass-balance-val').textContent = `₹${res.card.balance.toFixed(2)}`;
+      }
+    }
+  </script>
+</body>
+</html>

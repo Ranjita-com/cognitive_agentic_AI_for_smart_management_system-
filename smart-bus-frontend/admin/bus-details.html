@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bus Telemetry Cockpit | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item active"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <a href="buses.html" class="action-btn" style="padding:6px 12px;"><i class="fa-solid fa-arrow-left"></i> Back</a>
+          <h1 class="page-title" id="bus-title-header">Bus Telemetry Cockpit</h1>
+        </div>
+        <div class="nav-right">
+          <button class="action-btn btn-danger" onclick="injectSosCurrentBus()"><i class="fa-solid fa-triangle-exclamation"></i> Trigger SOS</button>
+          <button class="action-btn" onclick="injectSurgeCurrentBus()"><i class="fa-solid fa-people-group"></i> Simulate Passenger Surge</button>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <!-- Top Telemetry Gauges Cluster -->
+        <div class="gauge-cluster" style="margin-bottom:24px;">
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-speed">0.0 km/h</div>
+            <div class="gauge-label"><i class="fa-solid fa-gauge"></i> GPS Speed</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-occupancy" style="color:#10b981;">0 / 6</div>
+            <div class="gauge-label"><i class="fa-solid fa-users"></i> Dual IR Count</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-battery" style="color:#38bdf8;">12.6V</div>
+            <div class="gauge-label"><i class="fa-solid fa-car-battery"></i> Battery ADC</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-temp" style="color:#f59e0b;">84.5°C</div>
+            <div class="gauge-label"><i class="fa-solid fa-temperature-high"></i> Engine Temp</div>
+          </div>
+          <div class="gauge-item">
+            <div class="gauge-val" id="g-health" style="color:#a855f7;">95%</div>
+            <div class="gauge-label"><i class="fa-solid fa-heart-pulse"></i> ML Health Index</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Live Camera Stream (OV3660 Simulation) -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-video" style="color:#38bdf8;"></i> Onboard OV3660 Camera Live Stream
+              </div>
+              <span class="badge-tag badge-info">240MHz DMA Feed</span>
+            </div>
+            <div class="section-body" style="padding:12px;display:flex;justify-content:center;">
+              <img id="camera-stream-img" src="/api/buses/1/camera" style="width:100%;max-width:640px;border-radius:10px;border:1px solid var(--border-glass);" alt="Live Camera Stream">
+            </div>
+          </div>
+
+          <!-- Bus Hardware Diagnostics Info -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-microchip" style="color:#10b981;"></i> ESP32-S3 IoT Diagnostics
+              </div>
+            </div>
+            <div class="section-body" style="font-size:13px;line-height:2;">
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">Controller MAC:</span>
+                <span id="diag-mac" style="font-family:monospace;color:#fff;">ESP32_S3_E4:65:B8:10:01</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">GPS Satellites:</span>
+                <span style="color:#10b981;"><i class="fa-solid fa-satellite"></i> 8 Satellites Locked</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">RFID Reader (RC522):</span>
+                <span style="color:#38bdf8;">SPI Active (Tag: RFID_STOP_101)</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">I2C LCD 16x2:</span>
+                <span style="color:#fff;">Operational (0x27)</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-glass);">
+                <span style="color:#94a3b8;">Assigned Driver:</span>
+                <span id="diag-driver" style="color:#fff;">Michael Vance</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;">
+                <span style="color:#94a3b8;">Assigned Route:</span>
+                <span id="diag-route" style="color:#fff;">Route 101 (Green Line)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const busId = parseInt(urlParams.get('bus_id')) || 1;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadBusDetails();
+      // Refresh camera feed
+      document.getElementById('camera-stream-img').src = `/api/buses/${busId}/camera?t=${Date.now()}`;
+    });
+
+    async function loadBusDetails() {
+      const res = await apiRequest(`/buses/${busId}`);
+      if (res && res.bus) {
+        const b = res.bus;
+        document.getElementById('bus-title-header').textContent = `Bus ${b.bus_number} Telemetric Cockpit`;
+        document.getElementById('g-speed').textContent = `${b.speed.toFixed(1)} km/h`;
+        document.getElementById('g-occupancy').textContent = `${b.current_passengers} / ${b.capacity}`;
+        document.getElementById('g-battery').textContent = `${b.battery_voltage.toFixed(2)}V`;
+        document.getElementById('g-temp').textContent = `${b.engine_temp.toFixed(1)}°C`;
+        document.getElementById('g-health').textContent = `${b.health_score.toFixed(0)}%`;
+        document.getElementById('diag-mac').textContent = b.device_mac;
+        document.getElementById('diag-driver').textContent = b.driver_name;
+        document.getElementById('diag-route').textContent = b.route_name || 'Active Route';
+      }
+    }
+
+    document.addEventListener('busTelemetryUpdate', (e) => {
+      if (e.detail && e.detail.bus && e.detail.bus.id === busId) {
+        loadBusDetails();
+        document.getElementById('camera-stream-img').src = `/api/buses/${busId}/camera?t=${Date.now()}`;
+      }
+    });
+
+    async function injectSosCurrentBus() {
+      const res = await apiRequest('/alerts/sos', 'POST', { bus_id: busId });
+      if (res.success) {
+        playEmergencyAlarm();
+        showToast(`EMERGENCY SOS Triggered on Bus #${busId}!`, 'danger');
+      }
+    }
+
+    async function injectSurgeCurrentBus() {
+      const res = await apiRequest('/simulation/inject-event', 'POST', { bus_id: busId, event_type: 'PASSENGER_SURGE' });
+      if (res.success) {
+        showToast(`Passenger surge injected into Bus #${busId}!`, 'warning');
+      }
+    }
+  </script>
+</body>
+</html>

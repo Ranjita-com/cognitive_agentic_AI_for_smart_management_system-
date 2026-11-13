@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Route Lines & Stops Explorer | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+          <h2 class="passenger-title">Transit Route Lines</h2>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:20px;" id="passenger-routes-list">
+      <!-- Rendered dynamically -->
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', loadRoutes);
+
+    async function loadRoutes() {
+      const res = await apiRequest('/routes');
+      const container = document.getElementById('passenger-routes-list');
+      if (res && res.routes && container) {
+        container.innerHTML = res.routes.map(r => `
+          <div class="glass-panel" style="padding:18px;border-radius:14px;margin-bottom:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="badge-tag" style="background:${r.color};color:#fff;font-weight:700;">Route ${r.route_number}</span>
+              <span style="font-size:14px;font-weight:700;color:#10b981;">₹${Number(r.fare).toFixed(2)}</span>
+            </div>
+            <h3 style="font-size:16px;color:#fff;margin-bottom:4px;">${r.name}</h3>
+            <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">${r.origin} ➔ ${r.destination} (~${r.estimated_duration_mins}m)</div>
+
+            <div style="border-top:1px solid var(--border-glass);padding-top:10px;">
+              <div style="font-size:11px;color:#64748b;text-transform:uppercase;margin-bottom:8px;font-weight:700;">Stops & Stations:</div>
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                ${r.stops.map(s => `
+                  <div style="font-size:12px;color:#cbd5e1;display:flex;align-items:center;gap:8px;">
+                    <span style="width:6px;height:6px;border-radius:50%;background:#38bdf8;"></span>
+                    ${s.stop_name}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  </script>
+</body>
+</html>

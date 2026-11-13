@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bus Fleet Management | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+  <style>
+    .fare-badge-inr {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: #10b981;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .swap-btn-accent {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+    }
+    .swap-btn-accent:hover {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item active"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <h1 class="page-title">Fleet Bus Management</h1>
+        </div>
+        <div class="nav-right" style="display:flex;gap:10px;">
+          <a href="/" class="action-btn" target="_blank" style="border-color:#f43f5e;color:#f43f5e;" title="Open Online Bus Booking Web Portal">
+            <i class="fa-solid fa-ticket"></i> Ticket Portal (redBus)
+          </a>
+          <button class="action-btn" onclick="resetFleetData()" style="border-color:#38bdf8;color:#38bdf8;" title="Reset fleet to default routes, 6 seats for SB-101, and undo swaps">
+            <i class="fa-solid fa-rotate-left"></i> Reset Fleet Data
+          </button>
+          <a href="map.html" class="action-btn" style="display:flex;align-items:center;gap:6px;">
+            <i class="fa-solid fa-map-location-dot"></i> View on Live Map
+          </a>
+          <button class="action-btn btn-primary" onclick="openAddBusModal()"><i class="fa-solid fa-plus"></i> Add New Bus</button>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <!-- Fleet Management Attraction Hero Banner -->
+        <div class="glass-panel" style="margin-bottom:24px;padding:22px;border:1px solid rgba(56,189,248,0.25);background:linear-gradient(135deg, rgba(14,23,42,0.92) 0%, rgba(15,32,67,0.88) 100%);position:relative;overflow:hidden;">
+          <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:radial-gradient(circle, rgba(56,189,248,0.2) 0%, transparent 70%);border-radius:50%;pointer-events:none;"></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;position:relative;z-index:2;">
+            <div>
+              <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                <span class="badge-tag" style="background:rgba(56,189,248,0.18);border:1px solid rgba(56,189,248,0.4);color:#38bdf8;font-weight:700;font-size:11px;padding:4px 10px;border-radius:20px;">
+                  <i class="fa-solid fa-microchip"></i> 1 Physical Bus (SB-101 ESP32-S3)
+                </span>
+                <span class="badge-tag" style="background:rgba(16,185,129,0.18);border:1px solid rgba(16,185,129,0.4);color:#10b981;font-weight:700;font-size:11px;padding:4px 10px;border-radius:20px;">
+                  <i class="fa-solid fa-arrows-rotate"></i> Autonomous AI Reallocation
+                </span>
+                <span class="badge-tag" style="background:rgba(245,158,11,0.18);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;font-weight:700;font-size:11px;padding:4px 10px;border-radius:20px;">
+                  <i class="fa-solid fa-ticket"></i> INR (₹) Fare Matrix
+                </span>
+              </div>
+              <h2 style="font-size:22px;font-weight:800;color:#fff;margin-bottom:4px;">Transit Vehicle Roster & Route Allocation</h2>
+              <p style="font-size:12px;color:#cbd5e1;max-width:680px;margin:0;">
+                Live operational status, passenger capacity telemetry, driver assignments, and one-click autonomous fleet swapping.
+              </p>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="action-btn btn-primary" onclick="openAddBusModal()" style="font-size:12px;padding:10px 18px;display:flex;align-items:center;gap:6px;">
+                <i class="fa-solid fa-plus"></i> Add New Bus
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-grid" id="buses-grid-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add Bus Modal -->
+  <div id="add-bus-modal" class="modal-backdrop" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;overflow-y:auto;padding:20px;">
+    <div class="glass-panel" style="width:100%;max-width:540px;padding:28px;border-radius:18px;background:rgba(15,23,42,0.95);border:1px solid rgba(255,255,255,0.15);box-shadow:0 20px 40px rgba(0,0,0,0.6);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(56,189,248,0.2);color:#38bdf8;display:flex;align-items:center;justify-content:center;font-size:18px;">
+            <i class="fa-solid fa-bus"></i>
+          </div>
+          <div>
+            <h3 style="color:#fff;font-size:18px;margin:0;">Register New Fleet Bus</h3>
+            <div style="font-size:11px;color:#94a3b8;">Assign Driver, Route, and Indian Rupee Ticket Fare</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('add-bus-modal').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;">&times;</button>
+      </div>
+
+      <form id="add-bus-form">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Bus Identifier (e.g. SB-105)</label>
+            <input type="text" id="new-bus-number" class="form-control-custom" placeholder="SB-105" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">License Plate Number</label>
+            <input type="text" id="new-bus-plate" class="form-control-custom" placeholder="KA-01-EQ-9105" required>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Bus Model</label>
+            <input type="text" id="new-bus-model" class="form-control-custom" value="Volvo 9700 Smart Edition" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Seating Capacity</label>
+            <input type="number" id="new-bus-capacity" class="form-control-custom" value="40" min="10" max="90" required>
+          </div>
+        </div>
+
+        <!-- Route Assignment Selector -->
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-route" style="color:#38bdf8;"></i> Assign Initial Transit Route</label>
+          <select id="new-bus-route" class="form-control-custom" onchange="updateNewBusFarePreview()">
+            <option value="">-- Central Depot Standby (Ready for Auto-Swap) --</option>
+          </select>
+        </div>
+
+        <!-- Driver Assignment Selector -->
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-id-card" style="color:#10b981;"></i> Assign Certified Driver</label>
+          <select id="new-bus-driver" class="form-control-custom">
+            <option value="">-- Standby Driver Pool / Unassigned --</option>
+          </select>
+        </div>
+
+        <!-- Ticket Amount in Indian Rupees Preview Card -->
+        <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:12px 14px;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:700;">Ticket Amount (Indian Rupees):</div>
+            <div id="new-bus-fare-preview" style="font-size:18px;font-weight:800;color:#10b981;margin-top:2px;">
+              ₹30.00 / ticket
+            </div>
+          </div>
+          <div style="text-align:right;font-size:11px;color:#cbd5e1;">
+            <i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> Auto-registers on Map & Passenger App
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" style="padding:12px;font-size:14px;font-weight:700;">
+          <i class="fa-solid fa-plus-circle"></i> Register Bus Into Fleet & Deploy on Map
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Swap Bus / Reallocate Route Modal -->
+  <div id="swap-bus-modal" class="modal-backdrop" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;overflow-y:auto;padding:20px;">
+    <div class="glass-panel" style="width:100%;max-width:560px;padding:28px;border-radius:18px;background:rgba(15,23,42,0.95);border:1px solid rgba(245,158,11,0.3);box-shadow:0 20px 40px rgba(0,0,0,0.6);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,0.2);color:#f59e0b;display:flex;align-items:center;justify-content:center;font-size:18px;">
+            <i class="fa-solid fa-arrows-rotate"></i>
+          </div>
+          <div>
+            <h3 style="color:#fff;font-size:18px;margin:0;">Fleet Bus Swap & Reallocation</h3>
+            <div style="font-size:11px;color:#94a3b8;">Swap Active Bus with Standby / Another Route and Update Live Map</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('swap-bus-modal').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;">&times;</button>
+      </div>
+
+      <form id="swap-bus-form">
+        <input type="hidden" id="swap-source-bus-id">
+
+        <!-- Source Bus Overview Card -->
+        <div id="swap-source-summary" style="background:rgba(255,255,255,0.04);border:1px solid var(--border-glass);border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Swap Option Mode -->
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-sliders" style="color:#38bdf8;"></i> Choose Swap / Reallocation Action:</label>
+          <select id="swap-action-type" class="form-control-custom" onchange="toggleSwapModeFields()">
+            <option value="SWAP_BUS">⇄ Swap assignments with another Bus (e.g. Standby SB-104)</option>
+            <option value="REASSIGN_ROUTE">🔀 Reassign this Bus to a Different Transit Route</option>
+          </select>
+        </div>
+
+        <!-- Target Bus Selector (For SWAP_BUS mode) -->
+        <div class="form-group" id="target-bus-group">
+          <label class="form-label"><i class="fa-solid fa-bus" style="color:#10b981;"></i> Select Replacement / Partner Bus:</label>
+          <select id="swap-target-bus" class="form-control-custom">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <!-- Target Route Selector (For REASSIGN_ROUTE mode) -->
+        <div class="form-group" id="target-route-group" style="display:none;">
+          <label class="form-label"><i class="fa-solid fa-route" style="color:#38bdf8;"></i> Select New Transit Route:</label>
+          <select id="swap-target-route" class="form-control-custom" onchange="updateSwapFarePreview()">
+            <!-- Populated dynamically -->
+          </select>
+        </div>
+
+        <!-- Reason for Swap -->
+        <div class="form-group">
+          <label class="form-label"><i class="fa-solid fa-clipboard-question" style="color:#a855f7;"></i> Operational Reason for Swap:</label>
+          <select id="swap-reason-preset" class="form-control-custom" onchange="document.getElementById('swap-reason-custom').value=this.value">
+            <option value="Preventive Maintenance Rotation">Preventive Maintenance Rotation</option>
+            <option value="Passenger Surge & Demand Balancing">Passenger Surge & Demand Balancing</option>
+            <option value="Standby Unit Relief Deployment">Standby Unit Relief Deployment</option>
+            <option value="Driver Shift Schedule Realignment">Driver Shift Schedule Realignment</option>
+            <option value="Emergency Breakdown Auto-Swap">Emergency Breakdown Auto-Swap</option>
+          </select>
+          <input type="text" id="swap-reason-custom" class="form-control-custom" style="margin-top:6px;" value="Preventive Maintenance Rotation" placeholder="Or enter custom reason...">
+        </div>
+
+        <!-- Ticket Amount & Map Update Notice -->
+        <div style="background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.25);border-radius:12px;padding:12px 14px;margin-bottom:18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:11px;color:#94a3b8;font-weight:700;text-transform:uppercase;">Swapped Route Ticket Fare:</div>
+              <div id="swap-fare-preview" style="font-size:17px;font-weight:800;color:#10b981;margin-top:2px;">₹30.00 / ticket</div>
+            </div>
+            <div style="text-align:right;">
+              <span class="fare-badge-inr"><i class="fa-solid fa-indian-rupee-sign"></i> Indian Rupees</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:#cbd5e1;margin-top:6px;">
+            <i class="fa-solid fa-map-pin" style="color:#38bdf8;"></i> <b>Map Auto-Sync:</b> Bus polyline tracks, waypoint coordinates, and live markers will instantly update on both Admin Map and Passenger Tracker.
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" style="background:linear-gradient(135deg, #f59e0b, #d97706);padding:12px;font-size:14px;font-weight:700;">
+          <i class="fa-solid fa-arrows-rotate"></i> Confirm Fleet Swap & Update Live Map
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    let globalRoutes = [];
+    let globalDrivers = [];
+    let globalBuses = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      initSocket();
+      await Promise.all([
+        loadDropdownData(),
+        loadBusesGrid()
+      ]);
+    });
+
+    async function loadDropdownData() {
+      try {
+        const [routesRes, driversRes] = await Promise.all([
+          apiRequest('/routes'),
+          apiRequest('/drivers')
+        ]);
+
+        if (routesRes && routesRes.routes) {
+          globalRoutes = routesRes.routes;
+          populateRouteDropdowns();
+        }
+
+        if (driversRes && driversRes.drivers) {
+          globalDrivers = driversRes.drivers;
+          populateDriverDropdowns();
+        }
+      } catch (err) {
+        console.error('Error loading routes/drivers:', err);
+      }
+    }
+
+    function populateRouteDropdowns() {
+      const addRouteSelect = document.getElementById('new-bus-route');
+      const swapRouteSelect = document.getElementById('swap-target-route');
+
+      const routeOpts = globalRoutes.map(r => `
+        <option value="${r.id}" data-fare="${r.fare}">
+          Route ${r.route_number}: ${r.name} (${r.origin} ➔ ${r.destination}) • ₹${Number(r.fare).toFixed(2)}
+        </option>
+      `).join('');
+
+      if (addRouteSelect) {
+        addRouteSelect.innerHTML = `<option value="">-- Central Depot Standby (Ready for Auto-Swap) --</option>` + routeOpts;
+      }
+      if (swapRouteSelect) {
+        swapRouteSelect.innerHTML = routeOpts;
+      }
+    }
+
+    function populateDriverDropdowns() {
+      const addDriverSelect = document.getElementById('new-bus-driver');
+      if (addDriverSelect) {
+        addDriverSelect.innerHTML = `<option value="">-- Standby Driver Pool / Unassigned --</option>` + globalDrivers.map(d => `
+          <option value="${d.id}">
+            👨‍✈️ ${d.name} (${d.license_number} • ${d.rating || 4.8}★ • ${d.status})
+          </option>
+        `).join('');
+      }
+    }
+
+    function updateNewBusFarePreview() {
+      const select = document.getElementById('new-bus-route');
+      const preview = document.getElementById('new-bus-fare-preview');
+      if (!select || !preview) return;
+
+      const selectedOpt = select.options[select.selectedIndex];
+      const fare = selectedOpt ? selectedOpt.getAttribute('data-fare') : null;
+      if (fare) {
+        preview.textContent = `₹${Number(fare).toFixed(2)} / ticket`;
+      } else {
+        preview.textContent = `₹0.00 (Standby Bus)`;
+      }
+    }
+
+    function updateSwapFarePreview() {
+      const select = document.getElementById('swap-target-route');
+      const preview = document.getElementById('swap-fare-preview');
+      if (!select || !preview) return;
+
+      const selectedOpt = select.options[select.selectedIndex];
+      const fare = selectedOpt ? selectedOpt.getAttribute('data-fare') : null;
+      if (fare) {
+        preview.textContent = `₹${Number(fare).toFixed(2)} / ticket`;
+      } else {
+        preview.textContent = `₹30.00 / ticket`;
+      }
+    }
+
+    async function loadBusesGrid() {
+      const res = await apiRequest('/buses');
+      const container = document.getElementById('buses-grid-container');
+      if (res && res.buses && container) {
+        globalBuses = res.buses;
+        container.innerHTML = res.buses.map(b => {
+          const occ = b.occupancy_rate || 0;
+          const occColor = occ > 90 ? 'fill-red' : (occ > 75 ? 'fill-amber' : 'fill-green');
+          const isEmergency = b.emergency_status || b.status === 'emergency';
+          const isHardware = !b.is_simulated || b.bus_number === 'SB-101';
+          const isStandby = b.status === 'standby' || b.status === 'idle';
+          const isMaintenance = b.status === 'maintenance';
+          const routeColor = b.route_color || (b.route_number === '101' ? '#10b981' : (b.route_number === '202' ? '#3b82f6' : '#ef4444'));
+          const fareAmount = b.fare || b.ticket_price || 30.0;
+          
+          let statusLabel = b.status.toUpperCase();
+          let statusClass = 'active';
+          if (isEmergency) { statusLabel = 'EMERGENCY SOS'; statusClass = 'emergency'; }
+          else if (isStandby) { statusLabel = 'DEPOT STANDBY'; statusClass = 'badge-success'; }
+          else if (isMaintenance) { statusLabel = 'IN WORKSHOP (REPLACED)'; statusClass = 'badge-danger'; }
+
+          return `
+            <div class="glass-panel bus-card" id="bus-card-${b.id}" style="border-top:3px solid ${routeColor};">
+              <div style="height:120px;overflow:hidden;border-radius:10px;margin-bottom:12px;position:relative;background:#000;">
+                <img src="${b.image_url || '/assets/images/hero_luxury_coach.jpg'}" alt="${b.bus_number}" style="width:100%;height:100%;object-fit:cover;">
+                <div style="position:absolute;bottom:6px;left:8px;background:rgba(0,0,0,0.7);padding:2px 8px;border-radius:4px;font-size:10px;color:#fff;backdrop-filter:blur(4px);font-weight:600;">
+                  ${b.model || 'Smart Bus Coach'}
+                </div>
+              </div>
+              <div class="bus-card-header">
+                <div class="bus-id-badge">
+                  <span class="bus-number">${b.bus_number}</span>
+                  <span class="status-pill ${statusClass}">
+                    ${statusLabel}
+                  </span>
+                </div>
+                <div>
+                  ${isHardware ? `<span class="badge-tag badge-warning" style="font-size:10px;"><i class="fa-solid fa-microchip"></i> Physical Hardware (ESP32-S3 IoT)</span>` : `<span class="badge-tag badge-info" style="font-size:10px;"><i class="fa-solid fa-robot"></i> Simulated Autonomous</span>`}
+                </div>
+              </div>
+
+              <!-- Route Line & Ticket Amount in Indian Rupees -->
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                <div class="bus-route-info" style="margin:0;">
+                  <i class="fa-solid fa-route" style="color:${routeColor};"></i> 
+                  <span style="font-weight:700;color:#fff;">${b.route_name ? `Line ${b.route_number} - ${b.route_name}` : (isStandby ? 'Central Depot Standby' : 'Unassigned Route')}</span>
+                </div>
+                <div class="fare-badge-inr">
+                  <i class="fa-solid fa-ticket"></i> ₹${Number(fareAmount).toFixed(2)}
+                </div>
+              </div>
+
+              <div class="bus-progress-wrap" style="margin-top:10px;">
+                <div class="bus-progress-labels">
+                  <span>${isHardware ? 'Live Dual IR + YOLO Count' : 'Occupancy Rate'}</span>
+                  <span><b style="color:#fff;">${b.current_passengers}/${b.capacity}</b> (${occ.toFixed(0)}%) • <span style="color:#10b981;font-weight:700;">${b.available_seats} Free</span></span>
+                </div>
+                <div class="progress-bar-custom">
+                  <div class="progress-fill ${occColor}" style="width: ${occ}%;"></div>
+                </div>
+              </div>
+
+              <div class="bus-metrics-row">
+                <div class="metric-col">
+                  <div class="val">${b.speed.toFixed(1)} km/h</div>
+                  <div class="lbl">GPS Speed</div>
+                </div>
+                <div class="metric-col">
+                  <div class="val" style="color:${b.battery_voltage < 11.6 ? '#ef4444' : '#38bdf8'};">${b.battery_voltage.toFixed(2)}V</div>
+                  <div class="lbl">Battery ADC</div>
+                </div>
+                <div class="metric-col">
+                  <div class="val" style="color:${b.engine_temp > 95 ? '#ef4444' : '#f59e0b'};">${b.engine_temp.toFixed(1)}°C</div>
+                  <div class="lbl">Engine Temp</div>
+                </div>
+              </div>
+
+              <div class="bus-card-footer" style="margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center;">
+                <div class="driver-mini-info">
+                  <i class="fa-solid fa-user-tie" style="color:#38bdf8;"></i>
+                  <span>${b.driver_name || (isStandby ? 'Standby Driver Pool' : 'Unassigned')}</span>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <!-- Swap Bus / Reallocate Route Button -->
+                  <button type="button" class="swap-btn-accent" onclick="openSwapModal(${b.id})" title="Swap Bus with another or Reassign Route">
+                    <i class="fa-solid fa-arrows-rotate"></i> Swap Bus
+                  </button>
+                  <a href="bus-details.html?bus_id=${b.id}" class="action-btn btn-primary" style="padding:6px 10px;font-size:11px;">
+                    Telemetry <i class="fa-solid fa-arrow-right"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    document.addEventListener('busTelemetryUpdate', (e) => {
+      // Refresh cards on telemetry update
+      loadBusesGrid();
+    });
+
+    document.addEventListener('busReallocated', (e) => {
+      loadBusesGrid();
+    });
+
+    function openAddBusModal() {
+      document.getElementById('add-bus-modal').style.display = 'flex';
+      updateNewBusFarePreview();
+    }
+
+    document.getElementById('add-bus-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const busNumber = document.getElementById('new-bus-number').value.trim();
+      const plate = document.getElementById('new-bus-plate').value.trim();
+      const model = document.getElementById('new-bus-model').value.trim();
+      const capacity = document.getElementById('new-bus-capacity').value;
+      const routeId = document.getElementById('new-bus-route').value;
+      const driverId = document.getElementById('new-bus-driver').value;
+
+      const payload = {
+        bus_number: busNumber,
+        license_plate: plate,
+        model,
+        capacity: parseInt(capacity),
+        route_id: routeId ? parseInt(routeId) : null,
+        driver_id: driverId ? parseInt(driverId) : null,
+        status: routeId ? 'active' : 'standby'
+      };
+
+      const res = await apiRequest('/buses', 'POST', payload);
+
+      if (res.success) {
+        showToast(`Bus ${busNumber} added successfully and deployed to fleet map!`, 'success');
+        document.getElementById('add-bus-modal').style.display = 'none';
+        document.getElementById('add-bus-form').reset();
+        await loadBusesGrid();
+      } else {
+        showToast(res.message || 'Failed to add bus', 'danger');
+      }
+    });
+
+    // ==========================================
+    // BUS SWAP / REALLOCATION LOGIC
+    // ==========================================
+    function openSwapModal(busId) {
+      const bus = globalBuses.find(b => b.id === busId);
+      if (!bus) return;
+
+      document.getElementById('swap-source-bus-id').value = bus.id;
+      
+      const summaryContainer = document.getElementById('swap-source-summary');
+      const isReal = bus.bus_number === 'SB-101' || bus.data_source === 'REAL';
+      summaryContainer.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <div>
+            <span style="font-size:16px;font-weight:800;color:#fff;">🚌 ${bus.bus_number}</span>
+            <span style="font-size:11px;color:#94a3b8;margin-left:6px;">(${bus.license_plate})</span>
+          </div>
+          <span class="badge-tag ${bus.status === 'active' ? 'badge-success' : 'badge-warning'}" style="font-size:10px;">
+            ${bus.status.toUpperCase()}
+          </span>
+        </div>
+        <div style="font-size:12px;color:#cbd5e1;line-height:1.6;">
+          • <b>Current Route:</b> ${bus.route_name ? `Line ${bus.route_number} - ${bus.route_name}` : 'Depot Standby (Ready)'}<br>
+          • <b>Assigned Driver:</b> ${bus.driver_name || 'Unassigned'}<br>
+          • <b>Current Fare:</b> ₹${Number(bus.fare || 30).toFixed(2)} • <b>Health Score:</b> ${bus.health_score ? bus.health_score.toFixed(1) : 95.0}%
+        </div>
+      `;
+
+      // Populate target bus dropdown with all OTHER buses
+      const targetBusSelect = document.getElementById('swap-target-bus');
+      const otherBuses = globalBuses.filter(b => b.id !== bus.id);
+      targetBusSelect.innerHTML = otherBuses.map(b => {
+        const routeLabel = b.route_name ? `Line ${b.route_number} (${b.route_name})` : 'Central Depot Standby';
+        return `<option value="${b.id}">🚌 ${b.bus_number} [${routeLabel} • Health: ${b.health_score ? b.health_score.toFixed(0) : 95}% • ${b.status.toUpperCase()}]</option>`;
+      }).join('');
+
+      toggleSwapModeFields();
+      updateSwapFarePreview();
+
+      document.getElementById('swap-bus-modal').style.display = 'flex';
+    }
+
+    function toggleSwapModeFields() {
+      const mode = document.getElementById('swap-action-type').value;
+      const targetBusGroup = document.getElementById('target-bus-group');
+      const targetRouteGroup = document.getElementById('target-route-group');
+
+      if (mode === 'SWAP_BUS') {
+        targetBusGroup.style.display = 'block';
+        targetRouteGroup.style.display = 'none';
+      } else {
+        targetBusGroup.style.display = 'none';
+        targetRouteGroup.style.display = 'block';
+      }
+    }
+
+    document.getElementById('swap-bus-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const sourceBusId = parseInt(document.getElementById('swap-source-bus-id').value);
+      const mode = document.getElementById('swap-action-type').value;
+      const reason = document.getElementById('swap-reason-custom').value || 'Fleet Operational Swap';
+
+      let payload = {
+        source_bus_id: sourceBusId,
+        reason: reason
+      };
+
+      if (mode === 'SWAP_BUS') {
+        const targetBusId = parseInt(document.getElementById('swap-target-bus').value);
+        if (!targetBusId) {
+          showToast('Please select a target bus to swap with.', 'warning');
+          return;
+        }
+        payload.target_bus_id = targetBusId;
+      } else {
+        const targetRouteId = parseInt(document.getElementById('swap-target-route').value);
+        if (!targetRouteId) {
+          showToast('Please select a target route.', 'warning');
+          return;
+        }
+        payload.new_route_id = targetRouteId;
+      }
+
+      const res = await apiRequest('/buses/swap', 'POST', payload);
+
+      if (res.success) {
+        showToast(res.message || 'Bus swap executed successfully! Map and passenger views updated.', 'success');
+        document.getElementById('swap-bus-modal').style.display = 'none';
+        await loadBusesGrid();
+      } else {
+        showToast(res.message || 'Failed to execute swap', 'danger');
+      }
+    });
+  </script>
+</body>
+</html>

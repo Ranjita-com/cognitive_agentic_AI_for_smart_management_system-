@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartBus Transit | Next-Gen Online Bus Ticket Booking & IoT Fleet</title>
+  <meta name="description" content="Book smart bus tickets with live GPS tracking, dual-IR real-time seat availability, and autonomous AI fleet management. Inspired by redBus, AbhiBus, and CasaBus.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/assets/css/booking-portal.css">
+  <script>
+    (function() {
+      try {
+        var t = localStorage.getItem('smartbus_portal_theme');
+        if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.setAttribute('data-theme', 'dark');
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Top Utility Bar (Bastion / CasaBus Style) -->
+  <div class="top-utility-bar">
+    <div class="top-utility-left">
+      <div class="utility-item">
+        <i class="fa-solid fa-phone" style="color:var(--primary);"></i>
+        <span>24/7 Helpline: <strong>+1-800-SMARTBUS</strong></span>
+      </div>
+      <div class="utility-item">
+        <i class="fa-solid fa-envelope" style="color:#38bdf8;"></i>
+        <span>support@smartbus.transit</span>
+      </div>
+      <div class="utility-item">
+        <span class="status-chip-live">
+          <span class="status-dot-pulse"></span>
+          <span>ESP32-S3 Physical IoT Connected</span>
+        </span>
+      </div>
+    </div>
+    <div class="top-utility-right">
+      <div class="utility-item">
+        <a href="/admin/dashboard.html" style="color:#38bdf8;font-weight:700;">
+          <i class="fa-solid fa-gauge-high"></i> Admin Fleet Command Center
+        </a>
+      </div>
+      <div class="utility-item">
+        <a href="/passenger/index.html" style="color:#10b981;font-weight:700;">
+          <i class="fa-solid fa-mobile-screen"></i> Passenger Mobile App
+        </a>
+      </div>
+      <div class="utility-item">
+        <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Light / Dark Mode">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation Header (BusTraveller / CasaBus / redBus Style) -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="/" class="brand-wrapper">
+        <div class="brand-icon">
+          <i class="fa-solid fa-bus-simple"></i>
+        </div>
+        <div>
+          <div class="brand-title">Smart<span>Bus</span> <span class="brand-badge">Transit PRO</span></div>
+        </div>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="/" class="active"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a href="#search-section"><i class="fa-solid fa-ticket"></i> Book Tickets</a></li>
+        <li><a href="#fleet-section"><i class="fa-solid fa-bus"></i> Fleet Showcase</a></li>
+        <li><a href="#offers-section"><i class="fa-solid fa-tag"></i> Offers</a></li>
+        <li><a href="#about-section"><i class="fa-solid fa-microchip"></i> IoT Technology</a></li>
+        <li><a href="#app-section"><i class="fa-solid fa-mobile-screen-button"></i> Mobile App</a></li>
+      </ul>
+
+      <div class="header-actions">
+        <a href="/admin/dashboard.html" class="btn-header-admin">
+          <i class="fa-solid fa-shield-halved"></i> Fleet Dispatcher
+        </a>
+        <a href="#search-section" class="btn-header-cta">
+          <i class="fa-solid fa-bolt"></i> Book A Trip Now
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section (BusTraveller & Bastion Reference Style) -->
+  <section class="hero-section" style="background-image: url('/assets/images/hero_luxury_coach.jpg');">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-badge-pill">
+        <i class="fa-solid fa-bolt-lightning"></i>
+        <span>BUS YOUR TRAVEL JOURNEY • POWERED BY ESP32-S3 IoT & AI AGENTS</span>
+      </div>
+      <h1 class="hero-headline">
+        Where Every Bus Journey <span>Feels Magical & Smart!</span>
+      </h1>
+      <p class="hero-subtitle">
+        Book your intercity seats in real time with millisecond GPS tracking, dual-IR sensor seat matrix, and autonomous AI dispatching. Clean, safe, and on-time transit.
+      </p>
+      <div class="hero-actions">
+        <a href="#search-section" class="btn-hero-primary">
+          <i class="fa-solid fa-ticket"></i> Book A Trip Now
+        </a>
+        <a href="/passenger/tracking.html" class="btn-hero-secondary">
+          <i class="fa-solid fa-map-location-dot"></i> Live Fleet Radar
+        </a>
+        <a href="/passenger/seat-status.html?bus_id=1" class="btn-hero-secondary">
+          <i class="fa-solid fa-chair"></i> 2D Seat Layout (SB-101)
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Floating Search & Booking Widget (CasaBus & redBus Reference Style) -->
+  <div class="search-widget-container" id="search-section">
+    <div class="search-box-card">
+      <div class="search-tabs-header">
+        <button class="search-tab active" onclick="switchSearchTab(this, 'oneway')">
+          <i class="fa-solid fa-bus"></i> Daily Express Transit
+        </button>
+        <button class="search-tab" onclick="switchSearchTab(this, 'sleeper')">
+          <i class="fa-solid fa-bed"></i> Volvo Luxury Sleeper
+        </button>
+        <button class="search-tab" onclick="switchSearchTab(this, 'airport')">
+          <i class="fa-solid fa-plane-departure"></i> Airport Direct Express
+        </button>
+        <button class="search-tab" onclick="switchSearchTab(this, 'charter')">
+          <i class="fa-solid fa-users"></i> Group Charter / Hire
+        </button>
+      </div>
+
+      <form id="busBookingForm" onsubmit="handleSearchBuses(event)">
+        <div class="search-form-grid">
+          <!-- From -->
+          <div class="search-input-col">
+            <span class="search-label"><i class="fa-solid fa-circle-dot" style="color:#10b981;"></i> From Station</span>
+            <div class="search-input-inner">
+              <input type="text" id="originInput" placeholder="Departure Station (e.g. Central)" required autocomplete="off" list="originList">
+              <datalist id="originList">
+                <option value="Central Bus Terminal">
+                <option value="University Campus">
+                <option value="Downtown Station">
+                <option value="Tech Innovation Park">
+              </datalist>
+            </div>
+          </div>
+
+          <!-- Swap -->
+          <button type="button" class="btn-swap-locations" onclick="swapLocations()" title="Swap Departure and Destination">
+            <i class="fa-solid fa-right-left"></i>
+          </button>
+
+          <!-- To -->
+          <div class="search-input-col">
+            <span class="search-label"><i class="fa-solid fa-location-dot" style="color:var(--primary);"></i> To Destination</span>
+            <div class="search-input-inner">
+              <input type="text" id="destInput" placeholder="Arrival City / Stop" required autocomplete="off" list="destList">
+              <datalist id="destList">
+                <option value="International Airport Terminal">
+                <option value="Airport Terminal 1">
+                <option value="South Commercial Mall">
+                <option value="Metro Interchange Hub">
+              </datalist>
+            </div>
+          </div>
+
+          <!-- Date -->
+          <div class="search-input-col">
+            <span class="search-label"><i class="fa-regular fa-calendar-days" style="color:#f59e0b;"></i> Journey Date</span>
+            <div class="search-input-inner">
+              <input type="date" id="journeyDateInput" required>
+            </div>
+          </div>
+
+          <!-- Category -->
+          <div class="search-input-col">
+            <span class="search-label"><i class="fa-solid fa-sliders" style="color:#8b5cf6;"></i> Bus Class</span>
+            <div class="search-input-inner">
+              <select id="busClassSelect">
+                <option value="ALL">All Classes (Eco, Volvo, AC)</option>
+                <option value="ELECTRIC">Electric Transit (MetroLink)</option>
+                <option value="VOLVO">Volvo 9700 Smart Coach</option>
+                <option value="EXPRESS">Express Intercity Liner</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit" class="btn-search-submit">
+            <i class="fa-solid fa-magnifying-glass"></i> Let's Go
+          </button>
+        </div>
+      </form>
+
+      <!-- Live Service Notice Badges (from Image 2 CasaBus) -->
+      <div class="route-notice-badges">
+        <div class="notice-badge-item">
+          <span class="notice-badge-tag notice-tag-info">L001 GENERAL</span>
+          <span>Physical IoT Bus SB-101 running active on Route 101 with real Dual-IR sensors</span>
+        </div>
+        <div class="notice-badge-item">
+          <span class="notice-badge-tag notice-tag-warn">L002 HIGH DEMAND</span>
+          <span>Airport Direct line filling rapidly for afternoon rush</span>
+        </div>
+        <div class="notice-badge-item">
+          <span class="notice-badge-tag notice-tag-sched">L003 LIVE ETA</span>
+          <span>Dynamic AI delay forecast calibrated with 99.8% punctuality</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Action Feature Cards (CasaBus Reference Style) -->
+  <div class="quick-action-grid">
+    <a href="#search-section" class="quick-action-card">
+      <div class="quick-action-icon icon-yellow"><i class="fa-solid fa-store"></i></div>
+      <div class="quick-action-title">Booking Points</div>
+      <div class="quick-action-sub">50+ Physical Kiosks</div>
+    </a>
+    <a href="#offers-section" class="quick-action-card">
+      <div class="quick-action-icon icon-red"><i class="fa-solid fa-ticket-simple"></i></div>
+      <div class="quick-action-title">Tickets & Deals</div>
+      <div class="quick-action-sub">Up to 40% Off</div>
+    </a>
+    <a href="/passenger/profile.html" class="quick-action-card">
+      <div class="quick-action-icon icon-emerald"><i class="fa-solid fa-id-card"></i></div>
+      <div class="quick-action-title">Smart Bus Card</div>
+      <div class="quick-action-sub">RFID Tap & Go</div>
+    </a>
+    <a href="/passenger/timetable.html" class="quick-action-card">
+      <div class="quick-action-icon icon-blue"><i class="fa-solid fa-clock"></i></div>
+      <div class="quick-action-title">Schedules</div>
+      <div class="quick-action-sub">Every 12 Minutes</div>
+    </a>
+    <a href="/passenger/tracking.html" class="quick-action-card">
+      <div class="quick-action-icon icon-purple"><i class="fa-solid fa-satellite-dish"></i></div>
+      <div class="quick-action-title">Live GPS Radar</div>
+      <div class="quick-action-sub">Real-Time Telemetry</div>
+    </a>
+    <a href="/passenger/help.html" class="quick-action-card">
+      <div class="quick-action-icon icon-cyan"><i class="fa-solid fa-robot"></i></div>
+      <div class="quick-action-title">AI Transit Helper</div>
+      <div class="quick-action-sub">24/7 Agent Support</div>
+    </a>
+  </div>
+
+  <!-- Special Offers & Promo Codes (AbhiBus / redBus Reference Style) -->
+  <section class="offers-section" id="offers-section">
+    <div class="section-header-row">
+      <div class="section-title-wrap">
+        <h2>Exclusive Offers & Promo Deals</h2>
+        <p>Save more on every bus journey with instant discount coupons</p>
+      </div>
+      <a href="#search-section" style="color:var(--primary);text-decoration:none;font-weight:700;font-size:14px;">
+        View All Promos <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="offers-grid">
+      <!-- Promo 1 -->
+      <div class="offer-card">
+        <div>
+          <span class="offer-badge">FIRST RIDE SPECIAL</span>
+          <div class="offer-title">Save Up to 40% OFF</div>
+          <div class="offer-sub">Valid on all Volvo & Electric Transit smart buses</div>
+          <div class="offer-code-pill" onclick="copyPromoCode('SMARTBUS40')">
+            <span>USE CODE: <strong>SMARTBUS40</strong></span>
+            <i class="fa-regular fa-copy"></i>
+          </div>
+        </div>
+        <i class="fa-solid fa-percent" style="font-size:48px;opacity:0.15;color:var(--primary);"></i>
+      </div>
+
+      <!-- Promo 2 -->
+      <div class="offer-card">
+        <div>
+          <span class="offer-badge" style="background:#10b981;">STUDENT & COMMUTER</span>
+          <div class="offer-title">Flat $5 Cashback</div>
+          <div class="offer-sub">On campus and university daily express routes</div>
+          <div class="offer-code-pill" onclick="copyPromoCode('STUDENTPASS')">
+            <span>USE CODE: <strong>STUDENTPASS</strong></span>
+            <i class="fa-regular fa-copy"></i>
+          </div>
+        </div>
+        <i class="fa-solid fa-graduation-cap" style="font-size:48px;opacity:0.15;color:#10b981;"></i>
+      </div>
+
+      <!-- Promo 3 -->
+      <div class="offer-card">
+        <div>
+          <span class="offer-badge" style="background:#0284c7;">AIRPORT DIRECT</span>
+          <div class="offer-title">50% Off Luggage Pass</div>
+          <div class="offer-sub">Fast non-stop airport connection with luxury reclining seats</div>
+          <div class="offer-code-pill" onclick="copyPromoCode('AIRPORT50')">
+            <span>USE CODE: <strong>AIRPORT50</strong></span>
+            <i class="fa-regular fa-copy"></i>
+          </div>
+        </div>
+        <i class="fa-solid fa-plane-departure" style="font-size:48px;opacity:0.15;color:#0284c7;"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Fleet & Buses Showcase (CasaBus / Poribohon / redBus Style) -->
+  <section class="section-wrapper" id="fleet-section">
+    <div class="section-header-row">
+      <div class="section-title-wrap">
+        <h2>Our Modern Smart Fleet</h2>
+        <p>Zero-emission electric buses, luxury multi-axle coaches, and physical IoT connected units</p>
+      </div>
+      <div class="fleet-filter-chips">
+        <button class="fleet-chip active" onclick="filterFleet('ALL')">All Units</button>
+        <button class="fleet-chip" onclick="filterFleet('IOT')">Physical IoT (SB-101)</button>
+        <button class="fleet-chip" onclick="filterFleet('ELECTRIC')">Electric Transit</button>
+        <button class="fleet-chip" onclick="filterFleet('VOLVO')">Volvo Multi-Axle</button>
+      </div>
+    </div>
+
+    <div class="fleet-cards-grid" id="fleetGridContainer">
+      <!-- Bus 1: SB-101 Physical Hardware -->
+      <div class="fleet-bus-card" data-category="IOT VOLVO">
+        <div class="bus-card-image-wrap">
+          <img src="/assets/images/volvo_luxury_bus.jpg" alt="Volvo 9700 Smart Edition SB-101" loading="lazy">
+          <span class="bus-hardware-tag"><i class="fa-solid fa-microchip"></i> Physical ESP32-S3</span>
+          <span class="bus-type-tag">Volvo 9700</span>
+        </div>
+        <div class="bus-card-content">
+          <div class="bus-card-route-title">Bus SB-101 • Central Loop Express</div>
+          <div class="bus-card-model-sub">
+            <i class="fa-solid fa-satellite-dish" style="color:#10b981;"></i> Dual IR Sensors + OV3660 AI Camera
+          </div>
+          <div class="bus-specs-strip">
+            <div class="spec-item">
+              <span class="spec-label">Capacity</span>
+              <span class="spec-val" id="card-sb101-capacity">6 Seats (IoT)</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Available</span>
+              <span class="spec-val" id="card-sb101-avail" style="color:#10b981;">6 Free</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Status</span>
+              <span class="spec-val" style="color:#10b981;">Active</span>
+            </div>
+          </div>
+          <div class="amenities-icons">
+            <span title="High Speed WiFi"><i class="fa-solid fa-wifi"></i></span>
+            <span title="AC Climate Controlled"><i class="fa-solid fa-snowflake"></i></span>
+            <span title="USB Charging"><i class="fa-solid fa-plug"></i></span>
+            <span title="Real-Time IR Occupancy"><i class="fa-solid fa-eye"></i></span>
+            <span title="Emergency SOS System"><i class="fa-solid fa-shield-halved"></i></span>
+          </div>
+          <div class="bus-card-footer">
+            <div class="bus-fare-price">$25.00 <span>/ seat</span></div>
+            <button class="btn-select-seat" onclick="openSeatModal(1, 'SB-101', 'Volvo 9700 Smart Edition', 25.0, 6)">
+              <i class="fa-solid fa-chair"></i> Select Seats
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bus 2: SB-102 Electric Transit -->
+      <div class="fleet-bus-card" data-category="ELECTRIC">
+        <div class="bus-card-image-wrap">
+          <img src="/assets/images/electric_smart_bus.jpg" alt="Mercedes Citaro All-Electric MetroLink" loading="lazy">
+          <span class="bus-hardware-tag" style="background:#0284c7;"><i class="fa-solid fa-bolt"></i> 100% Electric</span>
+          <span class="bus-type-tag">Citaro E-City</span>
+        </div>
+        <div class="bus-card-content">
+          <div class="bus-card-route-title">Bus SB-102 • Airport Direct Flyer</div>
+          <div class="bus-card-model-sub">
+            <i class="fa-solid fa-leaf" style="color:#10b981;"></i> Zero-Emission • Autonomous Telemetry
+          </div>
+          <div class="bus-specs-strip">
+            <div class="spec-item">
+              <span class="spec-label">Capacity</span>
+              <span class="spec-val">40 Seats</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Available</span>
+              <span class="spec-val" id="card-sb102-avail" style="color:#10b981;">18 Free</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">ETA</span>
+              <span class="spec-val" style="color:#f59e0b;">8 Mins</span>
+            </div>
+          </div>
+          <div class="amenities-icons">
+            <span title="Free High-Speed WiFi"><i class="fa-solid fa-wifi"></i></span>
+            <span title="USB Fast Charging"><i class="fa-solid fa-bolt"></i></span>
+            <span title="Panoramic Windows"><i class="fa-regular fa-sun"></i></span>
+            <span title="Luggage Racks"><i class="fa-solid fa-suitcase"></i></span>
+          </div>
+          <div class="bus-card-footer">
+            <div class="bus-fare-price">$45.00 <span>/ seat</span></div>
+            <button class="btn-select-seat" onclick="openSeatModal(2, 'SB-102', 'Mercedes Citaro E-Transit', 45.0, 40)">
+              <i class="fa-solid fa-chair"></i> Select Seats
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bus 3: SB-103 Coastal Tour / City Circular -->
+      <div class="fleet-bus-card" data-category="COASTAL">
+        <div class="bus-card-image-wrap">
+          <img src="/assets/images/bus_sunset_coach.jpg" alt="Pacific Coast Tour Coach" loading="lazy">
+          <span class="bus-hardware-tag" style="background:#d97706;"><i class="fa-solid fa-route"></i> Scenic Tour</span>
+          <span class="bus-type-tag">Tour Liner</span>
+        </div>
+        <div class="bus-card-content">
+          <div class="bus-card-route-title">Bus SB-103 • Red City Circular</div>
+          <div class="bus-card-model-sub">
+            <i class="fa-solid fa-mountain-sun" style="color:#f59e0b;"></i> University Campus ➔ City Mall
+          </div>
+          <div class="bus-specs-strip">
+            <div class="spec-item">
+              <span class="spec-label">Capacity</span>
+              <span class="spec-val">36 Seats</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Available</span>
+              <span class="spec-val" style="color:#10b981;">21 Free</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Freq</span>
+              <span class="spec-val">15 Mins</span>
+            </div>
+          </div>
+          <div class="amenities-icons">
+            <span title="AC Coach"><i class="fa-solid fa-snowflake"></i></span>
+            <span title="Comfort Seating"><i class="fa-solid fa-couch"></i></span>
+            <span title="Digital Displays"><i class="fa-solid fa-tv"></i></span>
+          </div>
+          <div class="bus-card-footer">
+            <div class="bus-fare-price">$20.00 <span>/ seat</span></div>
+            <button class="btn-select-seat" onclick="openSeatModal(3, 'SB-103', 'Tour Liner Coach', 20.0, 36)">
+              <i class="fa-solid fa-chair"></i> Select Seats
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bus 4: SB-104 Intercity Royal Coach -->
+      <div class="fleet-bus-card" data-category="VOLVO">
+        <div class="bus-card-image-wrap">
+          <img src="/assets/images/hero_luxury_coach.jpg" alt="Intercity Royal Coach" loading="lazy">
+          <span class="bus-hardware-tag" style="background:#7c3aed;"><i class="fa-solid fa-crown"></i> Intercity Royal</span>
+          <span class="bus-type-tag">Scania Touring</span>
+        </div>
+        <div class="bus-card-content">
+          <div class="bus-card-route-title">Bus SB-104 • Intercity Highway Express</div>
+          <div class="bus-card-model-sub">
+            <i class="fa-solid fa-shield" style="color:#8b5cf6;"></i> Multi-Axle Air Suspension
+          </div>
+          <div class="bus-specs-strip">
+            <div class="spec-item">
+              <span class="spec-label">Capacity</span>
+              <span class="spec-val">42 Seats</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Available</span>
+              <span class="spec-val" style="color:#10b981;">28 Free</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Rating</span>
+              <span class="spec-val" style="color:#f59e0b;">★ 4.9</span>
+            </div>
+          </div>
+          <div class="amenities-icons">
+            <span title="WiFi"><i class="fa-solid fa-wifi"></i></span>
+            <span title="Reclining Sleepers"><i class="fa-solid fa-bed"></i></span>
+            <span title="Personal Charging"><i class="fa-solid fa-plug"></i></span>
+            <span title="Water Bottle"><i class="fa-solid fa-bottle-water"></i></span>
+          </div>
+          <div class="bus-card-footer">
+            <div class="bus-fare-price">$38.00 <span>/ seat</span></div>
+            <button class="btn-select-seat" onclick="openSeatModal(4, 'SB-104', 'Scania Touring Royal', 38.0, 42)">
+              <i class="fa-solid fa-chair"></i> Select Seats
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- City Bus Tracking & Driver App Showcase (Inspired by Bustapp & Mobile App UI Kit) -->
+  <section class="section-wrapper" id="tracking-showcase">
+    <div class="tracking-showcase-wrapper">
+      <div class="section-header-row" style="margin-bottom:24px;">
+        <div class="section-title-wrap">
+          <span class="hero-badge-pill" style="margin-bottom:8px;">
+            <i class="fa-solid fa-satellite-dish"></i> LIVE GPS RADAR & DRIVER TELEMETRY APP
+          </span>
+          <h2 style="font-size:32px;color:#fff;">City Bus Tracking & Smart Driver Navigation</h2>
+          <p style="color:#cbd5e1;">Millisecond GPS telemetry, real-time stop arrival countdown, and intelligent driver cockpit assistance</p>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <a href="/passenger/tracking.html" class="btn-header-cta" style="background:#0284c7;">
+            <i class="fa-solid fa-map-location-dot"></i> Open Live Radar
+          </a>
+        </div>
+      </div>
+
+      <div class="tracking-showcase-grid">
+        <!-- Left: 3-Phone UI Kit Showcase Image -->
+        <div class="tracking-phone-banner-wrap">
+          <img src="/assets/images/bus_tracking_ui_kit.jpg" alt="City Bus Tracking & Mobile UI Kit" loading="lazy">
+        </div>
+
+        <!-- Right: Interactive Route Stop Timeline & Telemetry -->
+        <div class="timeline-interactive-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;">
+            <div>
+              <span class="badge-tag" style="background:var(--primary);color:#fff;font-size:11px;font-weight:800;padding:2px 8px;border-radius:4px;">
+                Line 101 • Bus SB-101 (IoT)
+              </span>
+              <div style="font-size:15px;font-weight:800;color:var(--text-main);margin-top:4px;">
+                Central Station ➔ Airport Terminal
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <span class="status-chip-live">
+                <span class="status-dot-pulse"></span>
+                <span>Moving • 38 km/h</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Stops Timeline (matches Bustapp reference Image 1) -->
+          <div class="timeline-stops-list">
+            <div class="timeline-line-track"></div>
+
+            <!-- Stop 1 -->
+            <div class="timeline-stop-row">
+              <div class="stop-indicator-node node-passed">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <div class="stop-meta-details">
+                <div class="stop-meta-title">
+                  <span>Central Bus Terminal</span>
+                  <span style="color:#10b981;font-size:12px;">01:20 PM (Departed)</span>
+                </div>
+                <div class="stop-meta-sub">Origin Station • 6 Passengers Boarded</div>
+              </div>
+            </div>
+
+            <!-- Stop 2 (Current Next Stop) -->
+            <div class="timeline-stop-row">
+              <div class="stop-indicator-node node-current">
+                <i class="fa-solid fa-bus"></i>
+              </div>
+              <div class="stop-meta-details">
+                <div class="stop-meta-title">
+                  <span style="color:#fca5a5;">Tech Innovation Park</span>
+                  <span style="color:var(--primary);font-size:12px;font-weight:800;">Arriving in ~2 Mins</span>
+                </div>
+                <div class="stop-meta-sub">Next Stop • Dual-IR sensor detecting waiting passengers</div>
+              </div>
+            </div>
+
+            <!-- Stop 3 -->
+            <div class="timeline-stop-row">
+              <div class="stop-indicator-node node-upcoming">
+                <span>3</span>
+              </div>
+              <div class="stop-meta-details">
+                <div class="stop-meta-title">
+                  <span>City Library & Metro Hub</span>
+                  <span style="color:var(--text-dim);font-size:12px;">01:39 PM (Est.)</span>
+                </div>
+                <div class="stop-meta-sub">Transfer Station for Route 202 Airport Express</div>
+              </div>
+            </div>
+
+            <!-- Stop 4 -->
+            <div class="timeline-stop-row">
+              <div class="stop-indicator-node node-upcoming">
+                <span>4</span>
+              </div>
+              <div class="stop-meta-details">
+                <div class="stop-meta-title">
+                  <span>International Airport Terminal</span>
+                  <span style="color:var(--text-dim);font-size:12px;">01:59 PM (Est.)</span>
+                </div>
+                <div class="stop-meta-sub">Final Destination • Connecting Flights</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Driver Cockpit Banner (matches Image 1 Bus Driver App) -->
+          <div class="driver-cockpit-banner-card" style="margin-top:20px;padding:12px;background:var(--bg-base);border:1px solid var(--border-subtle);border-radius:14px;display:flex;align-items:center;gap:14px;">
+            <img src="/assets/images/bus_driver_dashboard.jpg" alt="Driver Cockpit Tablet App" style="width:110px;height:75px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+            <div style="flex:1;min-width:0;">
+              <div style="font-size:10px;font-weight:800;color:#38bdf8;text-transform:uppercase;">Mounted Driver Navigation App</div>
+              <div style="font-size:13px;font-weight:700;color:var(--text-main);">Live Cockpit HUD & Passenger Counter</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">
+                ESP32-S3 IoT telemetry synced with driver attentiveness AI
+              </div>
+            </div>
+            <a href="/admin/driver-recognition.html" class="action-btn" style="padding:6px 12px;font-size:11px;font-weight:700;color:#38bdf8;border-color:rgba(56,189,248,0.3);text-decoration:none;white-space:nowrap;">
+              Driver Studio <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Popular Destinations (BusTraveller Reference Style) -->
+  <section class="section-wrapper">
+    <div class="section-header-row">
+      <div class="section-title-wrap">
+        <h2>Popular Destinations & Trending Routes</h2>
+        <p>Discover the most loved stops and intercity connections</p>
+      </div>
+      <a href="/passenger/timetable.html" style="color:var(--primary);text-decoration:none;font-weight:700;font-size:14px;">
+        Full Transit Timetable <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <div class="destinations-grid">
+      <a href="#search-section" class="dest-card" onclick="prefillRoute('Downtown Station', 'International Airport Terminal')">
+        <img src="/assets/images/electric_smart_bus.jpg" alt="Airport Hub">
+        <div class="dest-card-overlay"></div>
+        <div class="dest-card-content">
+          <div class="dest-title">Airport Terminal Hub</div>
+          <div class="dest-sub">
+            <span>Route 202 Express</span>
+            <strong style="color:#38bdf8;">From $45.00</strong>
+          </div>
+        </div>
+      </a>
+
+      <a href="#search-section" class="dest-card" onclick="prefillRoute('University Campus', 'South Commercial Mall')">
+        <img src="/assets/images/bus_sunset_coach.jpg" alt="University City">
+        <div class="dest-card-overlay"></div>
+        <div class="dest-card-content">
+          <div class="dest-title">University Tech Hub</div>
+          <div class="dest-sub">
+            <span>Route 303 Circular</span>
+            <strong style="color:#10b981;">From $20.00</strong>
+          </div>
+        </div>
+      </a>
+
+      <a href="#search-section" class="dest-card" onclick="prefillRoute('Central Bus Terminal', 'Tech Innovation Park')">
+        <img src="/assets/images/volvo_luxury_bus.jpg" alt="Metro Business Center">
+        <div class="dest-card-overlay"></div>
+        <div class="dest-card-content">
+          <div class="dest-title">Central Business Loop</div>
+          <div class="dest-sub">
+            <span>Route 101 (SB-101 IoT)</span>
+            <strong style="color:#f59e0b;">From $25.00</strong>
+          </div>
+        </div>
+      </a>
+
+      <a href="#search-section" class="dest-card" onclick="prefillRoute('Downtown Station', 'Pacific Ocean View')">
+        <img src="/assets/images/hero_luxury_coach.jpg" alt="Scenic Coastline">
+        <div class="dest-card-overlay"></div>
+        <div class="dest-card-content">
+          <div class="dest-title">Coastal Scenic Highway</div>
+          <div class="dest-sub">
+            <span>Intercity Tour Line</span>
+            <strong style="color:#ec4899;">From $38.00</strong>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- About SmartBus & IoT Technology (CasaBus & Bastion Style) -->
+  <section class="section-wrapper" id="about-section">
+    <div class="about-tech-grid">
+      <div>
+        <span class="about-badge"><i class="fa-solid fa-microchip"></i> Next-Gen Smart Fleet Architecture</span>
+        <h2 class="about-headline">
+          Expertly Connecting People, Hardware & Intelligent AI
+        </h2>
+        <p class="about-desc">
+          SmartBus Transit integrates physical embedded IoT hardware (ESP32-S3 + Arduino UNO + Dual IR passenger counting sensors + OV3660 camera) with four autonomous intelligent software agents. We deliver 100% accurate seat counts, live GPS radar, and predictive vehicle maintenance.
+        </p>
+
+        <div class="tech-features-list">
+          <div class="tech-feature-item">
+            <div class="tech-feat-icon"><i class="fa-solid fa-microchip"></i></div>
+            <div class="tech-feat-text">
+              <h4>Physical ESP32-S3 Demo</h4>
+              <p>Bus SB-101 is equipped with real hardware, sending live telemetry to our cloud broker.</p>
+            </div>
+          </div>
+          <div class="tech-feature-item">
+            <div class="tech-feat-icon" style="color:#10b981;background:rgba(16,185,129,0.12);"><i class="fa-solid fa-users-viewfinder"></i></div>
+            <div class="tech-feat-text">
+              <h4>Dual-IR + YOLOv8 AI</h4>
+              <p>Reconciles physical doorway optical break-beams with camera object detection.</p>
+            </div>
+          </div>
+          <div class="tech-feature-item">
+            <div class="tech-feat-icon" style="color:#f59e0b;background:rgba(245,158,11,0.12);"><i class="fa-solid fa-shield-heart"></i></div>
+            <div class="tech-feat-text">
+              <h4>Driver Attentiveness AI</h4>
+              <p>Fatigue and distraction monitor with emergency dashboard buzzer alerts.</p>
+            </div>
+          </div>
+          <div class="tech-feature-item">
+            <div class="tech-feat-icon" style="color:#8b5cf6;background:rgba(139,92,246,0.12);"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="tech-feat-text">
+              <h4>Autonomous Dispatch</h4>
+              <p>Simulates software fleet units with dynamic traffic ETA calculations.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="stats-counter-strip">
+          <div class="stat-item">
+            <div class="stat-number">50,000+</div>
+            <div class="stat-label">Happy Passengers</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">99.8%</div>
+            <div class="stat-label">On-Time Accuracy</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number">4 AI</div>
+            <div class="stat-label">Intelligent Agents</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-images-composite">
+        <img src="/assets/images/passengers_travel.jpg" alt="Commuters boarding SmartBus" class="about-img-main">
+        <div class="about-driver-float-card">
+          <img src="/assets/images/driver_cockpit.jpg" alt="Michael Vance - Senior Driver" class="about-driver-avatar">
+          <div class="driver-float-info">
+            <h5>Michael Vance</h5>
+            <p><i class="fa-solid fa-shield-check"></i> 7 Yrs • 0 Violations</p>
+            <div style="font-size:11px;color:#f59e0b;">★ 4.9 Rating (340 Trips)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mobile App Promotion (CasaBus Style with 3D Phone Mockup) -->
+  <section class="section-wrapper" id="app-section">
+    <div class="app-promo-card">
+      <div class="app-promo-content">
+        <span class="hero-badge-pill" style="margin-bottom:14px;">
+          <i class="fa-solid fa-mobile-screen"></i> APP AVAILABLE FOR ALL SMARTPHONES
+        </span>
+        <h2>Track Your Bus Live & Book Tickets on the Move</h2>
+        <p>
+          Download the SmartBus Transit mobile application to receive live push notifications, view real-time 2D bus seat availability, store digital RFID passes, and hail autonomous smart buses.
+        </p>
+
+        <div class="app-badges-row">
+          <a href="/passenger/index.html" class="store-btn">
+            <i class="fa-brands fa-apple"></i>
+            <div>
+              <span class="store-text-sub">Download on the</span>
+              <span class="store-text-main">Apple App Store</span>
+            </div>
+          </a>
+          <a href="/passenger/index.html" class="store-btn">
+            <i class="fa-brands fa-google-play"></i>
+            <div>
+              <span class="store-text-sub">Get it on</span>
+              <span class="store-text-main">Google Play</span>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <div class="app-mockup-wrapper">
+        <img src="/assets/images/mobile_app_mockup.jpg" alt="SmartBus Mobile Application Mockup" class="app-mockup-img">
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Seat Selection Modal (Inspired by redBus & AbhiBus) -->
+  <div class="seat-modal-backdrop" id="seatSelectionModal">
+    <div class="seat-modal-card">
+      <div class="modal-header-strip">
+        <div class="modal-title-group">
+          <h3 id="modalBusTitle">Reserve Bus Seats • SB-101</h3>
+          <p id="modalBusSub">Volvo 9700 Smart Edition • Dual IR Sensor Verified</p>
+        </div>
+        <button class="btn-close-modal" onclick="closeSeatModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body-layout">
+        <!-- Bus Cabin Layout Chassis -->
+        <div class="bus-cabin-chassis">
+          <div class="bus-front-cockpit">
+            <span><i class="fa-solid fa-dharmachakra"></i> DRIVER CABIN</span>
+            <span style="color:#10b981;"><i class="fa-solid fa-arrow-down"></i> ENTRY DOOR (DUAL IR)</span>
+          </div>
+
+          <div class="seat-grid-matrix" id="modalSeatGrid">
+            <!-- Dynamically populated -->
+          </div>
+
+          <div class="seat-legend-row">
+            <span><span class="legend-box" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);"></span> Free</span>
+            <span><span class="legend-box" style="background:var(--primary);"></span> Selected</span>
+            <span><span class="legend-box" style="background:rgba(239,68,68,0.2);border:1px solid #ef4444;"></span> Occupied</span>
+            <span><span class="legend-box" style="background:rgba(236,72,153,0.2);border:1px solid #ec4899;"></span> Women</span>
+          </div>
+        </div>
+
+        <!-- Booking & Fare Summary Form -->
+        <div class="booking-summary-col">
+          <div class="booking-fare-card">
+            <h4 style="font-size:15px;font-weight:800;color:var(--text-main);margin-bottom:12px;">
+              Booking Details & Fare Calculation
+            </h4>
+
+            <div class="fare-row">
+              <span>Selected Seats:</span>
+              <strong id="modalSummarySeats" style="color:var(--primary);">None selected</strong>
+            </div>
+            <div class="fare-row">
+              <span>Base Fare (Per Seat):</span>
+              <span id="modalSummaryBasePrice">$25.00</span>
+            </div>
+            <div class="fare-row">
+              <span>Discount / Promo:</span>
+              <span id="modalSummaryDiscount" style="color:#10b981;">-$0.00</span>
+            </div>
+            <div class="fare-row fare-total-row">
+              <span>Total Payable:</span>
+              <span id="modalSummaryTotal" style="color:var(--primary);">$0.00</span>
+            </div>
+          </div>
+
+          <form id="ticketPurchaseForm" onsubmit="handleTicketBooking(event)">
+            <div style="margin-bottom:12px;">
+              <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Passenger Full Name</label>
+              <input type="text" id="passengerNameInput" class="form-control-custom" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-base);border:1px solid var(--border-subtle);color:var(--text-main);margin-top:4px;" placeholder="e.g. John Doe" required>
+            </div>
+
+            <div style="margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              <div>
+                <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Phone Number</label>
+                <input type="tel" id="passengerPhoneInput" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-base);border:1px solid var(--border-subtle);color:var(--text-main);margin-top:4px;" placeholder="+1 555-0199" required>
+              </div>
+              <div>
+                <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Promo Code</label>
+                <input type="text" id="promoCodeInput" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--bg-base);border:1px solid var(--border-subtle);color:var(--text-main);margin-top:4px;text-transform:uppercase;" placeholder="SMARTBUS40" oninput="recalcFare()">
+              </div>
+            </div>
+
+            <button type="submit" class="btn-search-submit" style="width:100%;margin-top:10px;" id="btnConfirmBooking">
+              <i class="fa-solid fa-circle-check"></i> Confirm Reservation & Get QR Ticket
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmed Ticket Boarding Pass Modal -->
+  <div class="seat-modal-backdrop" id="ticketConfirmedModal">
+    <div class="seat-modal-card" style="max-width:540px;text-align:center;padding:30px;">
+      <div style="width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,0.15);color:#10b981;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h3 style="font-size:22px;font-weight:900;color:var(--text-main);margin-bottom:6px;">Booking Confirmed!</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Your digital boarding pass with live QR code is ready.</p>
+
+      <div style="background:var(--bg-base);border:2px dashed var(--border-subtle);border-radius:16px;padding:20px;text-align:left;margin-bottom:20px;" id="printableTicketCard">
+        <div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--border-subtle);padding-bottom:12px;margin-bottom:12px;">
+          <div>
+            <div style="font-size:16px;font-weight:800;color:var(--primary);" id="tktBusNum">Bus SB-101</div>
+            <div style="font-size:11px;color:var(--text-muted);" id="tktModel">Volvo 9700 Smart Edition</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;font-weight:800;color:#10b981;">CONFIRMED</div>
+            <div style="font-size:11px;color:var(--text-dim);" id="tktId">TKT-84920193</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:12px;margin-bottom:14px;">
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;text-transform:uppercase;">Passenger</div>
+            <strong id="tktPassengerName">John Doe</strong>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;text-transform:uppercase;">Assigned Seats</div>
+            <strong id="tktSeats" style="color:var(--primary);">1A, 1B</strong>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;text-transform:uppercase;">Boarding Stop</div>
+            <strong id="tktFromStop">Central Bus Station</strong>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;text-transform:uppercase;">Destination</div>
+            <strong id="tktToStop">Airport Terminal 1</strong>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;text-transform:uppercase;">Total Fare Paid</div>
+            <strong id="tktTotalPaid" style="color:#10b981;">$30.00</strong>
+          </div>
+          <div>
+            <div style="color:var(--text-dim);font-size:10px;text-transform:uppercase;">Time of Booking</div>
+            <span id="tktTime" style="font-size:11px;">Today</span>
+          </div>
+        </div>
+
+        <!-- Simulated Barcode / QR -->
+        <div style="text-align:center;padding-top:10px;border-top:1px dashed var(--border-subtle);">
+          <div style="font-family:monospace;letter-spacing:4px;font-weight:800;font-size:14px;color:var(--text-muted);" id="tktBarcode">
+            ||||| | |||| || |||||| ||| ||||
+          </div>
+          <div style="font-size:10px;color:var(--text-dim);margin-top:4px;">Scan at bus entrance or display to conductor</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;">
+        <button class="btn-search-submit" style="flex:1;" onclick="printTicket()">
+          <i class="fa-solid fa-print"></i> Print / Save Ticket
+        </button>
+        <button class="btn-hero-secondary" style="background:var(--bg-surface);color:var(--text-main);" onclick="closeConfirmedModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastMessage" style="position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid var(--primary);color:#fff;padding:12px 20px;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.4);display:none;z-index:2000;font-size:14px;font-weight:600;">
+    Notification
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-top-grid">
+        <div class="footer-col">
+          <div class="brand-wrapper" style="margin-bottom:16px;">
+            <div class="brand-icon"><i class="fa-solid fa-bus-simple"></i></div>
+            <div class="brand-title">Smart<span>Bus</span> Transit</div>
+          </div>
+          <p style="line-height:1.7;margin-bottom:16px;">
+            Next-generation intelligent passenger transit and autonomous fleet ecosystem. Engineered with physical ESP32-S3 hardware, real dual-IR doorway sensors, and predictive AI maintenance.
+          </p>
+          <div style="display:flex;gap:14px;font-size:18px;">
+            <a href="#" style="color:#94a3b8;"><i class="fa-brands fa-facebook"></i></a>
+            <a href="#" style="color:#94a3b8;"><i class="fa-brands fa-twitter"></i></a>
+            <a href="#" style="color:#94a3b8;"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" style="color:#94a3b8;"><i class="fa-brands fa-linkedin"></i></a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4>Passenger Services</h4>
+          <ul>
+            <li><a href="#search-section">Search & Book Tickets</a></li>
+            <li><a href="/passenger/seat-status.html">2D Visual Seat Layout</a></li>
+            <li><a href="/passenger/tracking.html">Live GPS Bus Radar</a></li>
+            <li><a href="/passenger/timetable.html">Transit Timetable</a></li>
+            <li><a href="/passenger/profile.html">Smart RFID Card Recharge</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Fleet & Operations</h4>
+          <ul>
+            <li><a href="/admin/dashboard.html">Fleet Command Center</a></li>
+            <li><a href="/admin/map.html">Live Fleet Dispatch Map</a></li>
+            <li><a href="/admin/buses.html">Vehicle Hardware Inventory</a></li>
+            <li><a href="/admin/driver-recognition.html">Driver Safety Studio</a></li>
+            <li><a href="/admin/maintenance.html">Predictive Health (ML)</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Need Support?</h4>
+          <ul>
+            <li><a href="/passenger/help.html">24/7 AI Helper Assistant</a></li>
+            <li><a href="/passenger/feedback.html">Passenger Reviews & Lost Property</a></li>
+            <li><a href="tel:18005550199">Emergency SOS Dispatch</a></li>
+            <li><a href="/api/health">System Health API Status</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <div>© 2026 SmartBus Transit Technologies Inc. All rights reserved. Inspired by redBus, AbhiBus & CasaBus designs.</div>
+        <div style="display:flex;gap:20px;">
+          <a href="#" style="color:#64748b;text-decoration:none;">Privacy Policy</a>
+          <a href="#" style="color:#64748b;text-decoration:none;">Terms of Service</a>
+          <a href="#" style="color:#64748b;text-decoration:none;">Security Architecture</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // State
+    let activeModalBusId = 1;
+    let activeModalBusNumber = 'SB-101';
+    let activeModalBasePrice = 25.0;
+    let activeModalCapacity = 6;
+    let selectedSeatsList = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set Default Date to Today
+      const today = new Date().toISOString().split('T')[0];
+      const dateEl = document.getElementById('journeyDateInput');
+      if (dateEl) dateEl.value = today;
+
+      // Load Live Fleet Availability from API
+      loadFleetLiveData();
+      fetchStopsForAutocomplete();
+    });
+
+    function toggleTheme() {
+      const cur = document.documentElement.getAttribute('data-theme');
+      const next = cur === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('smartbus_portal_theme', next);
+      const icon = document.querySelector('#themeToggleBtn i');
+      if (icon) icon.className = next === 'light' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
+
+    async function loadFleetLiveData() {
+      try {
+        const res = await fetch('/api/buses');
+        const data = await res.json();
+        if (data && data.buses) {
+          data.buses.forEach(b => {
+            if (b.bus_number === 'SB-101') {
+              const el = document.getElementById('card-sb101-avail');
+              if (el) el.textContent = `${b.available_seats || (b.capacity - b.current_passengers)} Free`;
+            } else if (b.bus_number === 'SB-102') {
+              const el = document.getElementById('card-sb102-avail');
+              if (el) el.textContent = `${b.available_seats || (b.capacity - b.current_passengers)} Free`;
+            }
+          });
+        }
+      } catch (err) {
+        console.warn('Could not refresh fleet live counts:', err);
+      }
+    }
+
+    async function fetchStopsForAutocomplete() {
+      try {
+        const res = await fetch('/api/stops');
+        const data = await res.json();
+        if (data && data.stops) {
+          const originList = document.getElementById('originList');
+          const destList = document.getElementById('destList');
+          if (originList && destList) {
+            const opts = data.stops.map(s => `<option value="${s.name}">`).join('');
+            originList.innerHTML = opts;
+            destList.innerHTML = opts;
+          }
+        }
+      } catch (e) {}
+    }
+
+    function swapLocations() {
+      const o = document.getElementById('originInput');
+      const d = document.getElementById('destInput');
+      const temp = o.value;
+      o.value = d.value;
+      d.value = temp;
+    }
+
+    function switchSearchTab(btn, mode) {
+      document.querySelectorAll('.search-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const select = document.getElementById('busClassSelect');
+      if (mode === 'sleeper') select.value = 'VOLVO';
+      else if (mode === 'airport') select.value = 'ELECTRIC';
+      else select.value = 'ALL';
+    }
+
+    function filterFleet(cat) {
+      document.querySelectorAll('.fleet-chip').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      const cards = document.querySelectorAll('.fleet-bus-card');
+      cards.forEach(c => {
+        const dCat = c.getAttribute('data-category') || '';
+        if (cat === 'ALL' || dCat.includes(cat)) {
+          c.style.display = 'flex';
+        } else {
+          c.style.display = 'none';
+        }
+      });
+    }
+
+    function prefillRoute(from, to) {
+      document.getElementById('originInput').value = from;
+      document.getElementById('destInput').value = to;
+      document.getElementById('search-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyPromoCode(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        showToast(`Promo Code ${code} copied to clipboard! Enjoy your discount.`);
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toastMessage');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    function handleSearchBuses(e) {
+      e.preventDefault();
+      const origin = document.getElementById('originInput').value;
+      const dest = document.getElementById('destInput').value;
+      showToast(`Searching available buses from ${origin} to ${dest}...`);
+      
+      // Smooth scroll to Fleet section and open matching seat modal
+      document.getElementById('fleet-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Interactive 2D Seat Matrix Modal (redBus / AbhiBus Style)
+    async function openSeatModal(busId, busNum, modelName, basePrice, capacity) {
+      activeModalBusId = busId;
+      activeModalBusNumber = busNum;
+      activeModalBasePrice = basePrice;
+      activeModalCapacity = capacity;
+      selectedSeatsList = [];
+
+      document.getElementById('modalBusTitle').textContent = `Reserve Seats • Bus ${busNum}`;
+      document.getElementById('modalBusSub').textContent = `${modelName} • Base Fare: $${basePrice.toFixed(2)}`;
+      document.getElementById('modalSummaryBasePrice').textContent = `$${basePrice.toFixed(2)}`;
+      
+      recalcFare();
+
+      // Render Seats
+      const grid = document.getElementById('modalSeatGrid');
+      grid.innerHTML = '<div style="color:var(--text-muted);grid-column:span 4;text-align:center;padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading live dual-IR sensor seat state...</div>';
+      document.getElementById('seatSelectionModal').style.display = 'flex';
+
+      try {
+        const res = await fetch(`/api/passenger/bus/${busId}/seats`);
+        const data = await res.json();
+        if (data && data.seats) {
+          renderSeatGrid(data.seats);
+        } else {
+          fallbackRenderSeats(capacity);
+        }
+      } catch (err) {
+        fallbackRenderSeats(capacity);
+      }
+    }
+
+    function fallbackRenderSeats(capacity) {
+      const sampleSeats = [];
+      const rows = Math.ceil(capacity / 4);
+      let sNum = 1;
+      for (let r = 1; r <= rows; r++) {
+        ['A', 'B', 'C', 'D'].forEach(c => {
+          if (sNum <= capacity) {
+            sampleSeats.push({
+              seat_number: `${r}${c}`,
+              is_occupied: false,
+              type: (r === 1 ? 'PRIORITY' : (c === 'A' ? 'WOMEN' : 'STANDARD'))
+            });
+            sNum++;
+          }
+        });
+      }
+      renderSeatGrid(sampleSeats);
+    }
+
+    function renderSeatGrid(seats) {
+      const grid = document.getElementById('modalSeatGrid');
+      grid.innerHTML = seats.map(s => {
+        const isOcc = s.is_occupied;
+        const isWomen = s.type === 'WOMEN' || s.column === 'A';
+        const isPriority = s.type && s.type.includes('PRIORITY');
+        
+        let extraClass = '';
+        if (isOcc) extraClass = 'occupied';
+        else if (isWomen) extraClass = 'reserved-women';
+        else if (isPriority) extraClass = 'priority';
+
+        return `
+          <div class="seat-item ${extraClass}" onclick="toggleSeatSelect('${s.seat_number}', this, ${isOcc})">
+            <i class="fa-solid fa-chair" style="font-size:14px;margin-bottom:2px;"></i>
+            <span>${s.seat_number}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleSeatSelect(seatNum, el, isOcc) {
+      if (isOcc) {
+        showToast(`Seat ${seatNum} is already occupied by a passenger (Dual-IR Sensor verified).`);
+        return;
+      }
+      if (selectedSeatsList.includes(seatNum)) {
+        selectedSeatsList = selectedSeatsList.filter(s => s !== seatNum);
+        el.classList.remove('selected');
+      } else {
+        selectedSeatsList.push(seatNum);
+        el.classList.add('selected');
+      }
+      recalcFare();
+    }
+
+    function recalcFare() {
+      const count = selectedSeatsList.length;
+      document.getElementById('modalSummarySeats').textContent = count > 0 ? selectedSeatsList.join(', ') : 'None selected';
+      
+      const subtotal = count * activeModalBasePrice;
+      const promo = (document.getElementById('promoCodeInput')?.value || '').trim().toUpperCase();
+      
+      let discount = 0.0;
+      if (promo === 'SMARTBUS40') discount = subtotal * 0.40;
+      else if (promo === 'STUDENTPASS') discount = Math.min(subtotal, 5.0);
+      else if (promo === 'AIRPORT50') discount = subtotal * 0.50;
+
+      const total = Math.max(0, subtotal - discount);
+
+      document.getElementById('modalSummaryDiscount').textContent = `-$${discount.toFixed(2)}`;
+      document.getElementById('modalSummaryTotal').textContent = `$${total.toFixed(2)}`;
+    }
+
+    function closeSeatModal() {
+      document.getElementById('seatSelectionModal').style.display = 'none';
+    }
+
+    async function handleTicketBooking(e) {
+      e.preventDefault();
+      if (selectedSeatsList.length === 0) {
+        alert('Please choose at least 1 free seat on the visual layout.');
+        return;
+      }
+
+      const passengerName = document.getElementById('passengerNameInput').value;
+      const phone = document.getElementById('passengerPhoneInput').value;
+      const promo = (document.getElementById('promoCodeInput').value || '').trim().toUpperCase();
+      const origin = document.getElementById('originInput').value || 'Central Bus Terminal';
+      const dest = document.getElementById('destInput').value || 'Airport Terminal 1';
+
+      const btn = document.getElementById('btnConfirmBooking');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing Payment & Ticket...';
+      btn.disabled = true;
+
+      try {
+        const payload = {
+          bus_id: activeModalBusId,
+          passenger_name: passengerName,
+          phone: phone,
+          seats: selectedSeatsList,
+          from_stop: origin,
+          to_stop: dest,
+          promo_code: promo,
+          payment_method: 'CARD'
+        };
+
+        const res = await fetch('/api/passenger/book-ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Confirm Reservation & Get QR Ticket';
+        btn.disabled = false;
+
+        if (data && data.success && data.ticket) {
+          closeSeatModal();
+          showConfirmedTicket(data.ticket);
+          loadFleetLiveData();
+        } else {
+          alert(data.message || 'Booking failed. Please try again.');
+        }
+      } catch (err) {
+        btn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Confirm Reservation & Get QR Ticket';
+        btn.disabled = false;
+        alert('Error booking ticket. Please check your connection.');
+      }
+    }
+
+    function showConfirmedTicket(tkt) {
+      document.getElementById('tktBusNum').textContent = `Bus ${tkt.bus_number}`;
+      document.getElementById('tktModel').textContent = tkt.bus_model || 'Volvo 9700 Smart Edition';
+      document.getElementById('tktId').textContent = tkt.ticket_id;
+      document.getElementById('tktPassengerName').textContent = tkt.passenger_name;
+      document.getElementById('tktSeats').textContent = tkt.seats.join(', ');
+      document.getElementById('tktFromStop').textContent = tkt.from_stop;
+      document.getElementById('tktToStop').textContent = tkt.to_stop;
+      document.getElementById('tktTotalPaid').textContent = `$${tkt.total_fare.toFixed(2)}`;
+      document.getElementById('tktTime').textContent = tkt.booking_time;
+      document.getElementById('tktBarcode').textContent = `|| ${tkt.ticket_id} || ${tkt.seats.join('-')} ||`;
+
+      document.getElementById('ticketConfirmedModal').style.display = 'flex';
+    }
+
+    function closeConfirmedModal() {
+      document.getElementById('ticketConfirmedModal').style.display = 'none';
+    }
+
+    function printTicket() {
+      window.print();
+    }
+  </script>
+</body>
+</html>

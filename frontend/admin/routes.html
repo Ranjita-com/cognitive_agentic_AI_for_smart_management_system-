@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Routes & Stops Configuration | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item active"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <h1 class="page-title">Routes & Transit Stops Management</h1>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <div id="routes-container">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', loadRoutes);
+
+    async function loadRoutes() {
+      const res = await apiRequest('/routes');
+      const container = document.getElementById('routes-container');
+      if (res && res.routes && container) {
+        container.innerHTML = res.routes.map(r => `
+          <div class="glass-panel" style="padding:24px;margin-bottom:24px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span class="badge-tag" style="background:${r.color};color:#fff;font-size:14px;font-weight:700;">Route ${r.route_number}</span>
+                <h3 style="color:#fff;font-size:18px;margin:0;">${r.name}</h3>
+              </div>
+              <div style="display:flex;gap:14px;font-size:13px;color:#94a3b8;">
+                <span><i class="fa-solid fa-arrows-left-right"></i> ${r.distance_km} km</span>
+                <span><i class="fa-solid fa-clock"></i> ~${r.estimated_duration_mins} mins</span>
+                <span style="color:#10b981;font-weight:700;"><i class="fa-solid fa-ticket"></i> ₹${r.fare.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <h4 style="font-size:13px;color:#64748b;text-transform:uppercase;margin-bottom:12px;">Stop Sequence & Geofences</h4>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+              ${r.stops.map((s, idx) => `
+                <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border-glass);padding:8px 14px;border-radius:8px;display:flex;align-items:center;gap:8px;">
+                  <span style="width:20px;height:20px;background:rgba(56,189,248,0.2);color:#38bdf8;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">${s.sequence_order}</span>
+                  <div>
+                    <div style="font-size:12px;font-weight:600;color:#fff;">${s.stop_name}</div>
+                    <div style="font-size:10px;color:#64748b;">${s.stop_code} • ${s.rfid_tag || 'GPS ONLY'}</div>
+                  </div>
+                </div>
+                ${idx < r.stops.length - 1 ? `<i class="fa-solid fa-arrow-right" style="color:#475569;font-size:11px;"></i>` : ''}
+              `).join('')}
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  </script>
+</body>
+</html>

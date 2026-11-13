@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Bus Tracking & Dynamic ETA | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/map.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+          <h2 class="passenger-title">Live Bus Tracker</h2>
+        </div>
+        <select id="passenger-bus-select" class="form-control-custom" style="width:205px;padding:4px 8px;font-size:12px;" onchange="switchTrackedBus(this.value)">
+          <option value="1">🟢 SB-101 (Line 101 Green IoT)</option>
+          <option value="2">🔵 SB-102 (Line 202 Blue Airport)</option>
+          <option value="3">🔴 SB-103 (Line 303 Red City)</option>
+          <option value="4">🟢 SB-104 (Line 101 Green Relief)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Live Map Container -->
+    <div style="position:relative;height:380px;width:100%;">
+      <div id="passenger-live-map" class="map-container" style="height:380px;border-radius:0;"></div>
+    </div>
+
+    <!-- Dynamic Live Telemetry Card -->
+    <div style="padding:16px;">
+      <div class="glass-panel" style="padding:18px;border-radius:16px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <span id="track-bus-badge" class="badge-tag" style="font-size:13px;font-weight:700;background:#10b981;color:#fff;">Bus SB-101</span>
+            <h3 id="track-route-name" style="font-size:16px;color:#fff;margin:4px 0 0;">Line 101: Green Line Express</h3>
+            <div id="track-fare-amount" style="font-size:12px;font-weight:700;color:#10b981;margin-top:2px;">
+              <i class="fa-solid fa-ticket"></i> Ticket Fare: ₹30.00 / passenger
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div id="track-dynamic-eta" style="font-size:26px;font-weight:800;color:#38bdf8;line-height:1;">~5 mins</div>
+            <div style="font-size:11px;color:#94a3b8;">Dynamic ETA</div>
+          </div>
+        </div>
+
+        <!-- Live Route Progression Bar -->
+        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border-glass);border-radius:12px;padding:12px 10px;margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;display:flex;justify-content:space-between;">
+            <span><i class="fa-solid fa-route" style="color:#38bdf8;"></i> Route Stop Progression:</span>
+            <span id="progression-route-label" style="color:#10b981;">Line 101 Corridor</span>
+          </div>
+          <div class="stop-timeline-container" id="route-timeline-container">
+            <div class="stop-timeline-track"></div>
+            <!-- Dynamic Nodes will render here -->
+          </div>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border-glass);border-radius:10px;padding:12px;display:grid;grid-template-columns:repeat(3, 1fr);text-align:center;gap:8px;margin-bottom:14px;">
+          <div>
+            <div id="track-speed" style="font-size:16px;font-weight:700;color:#fff;">38 km/h</div>
+            <div style="font-size:10px;color:#64748b;">GPS Speed</div>
+          </div>
+          <div>
+            <div id="track-seats" style="font-size:16px;font-weight:700;color:#10b981;">22 Free</div>
+            <div style="font-size:10px;color:#64748b;">Seats Available</div>
+          </div>
+          <div>
+            <div id="track-status" style="font-size:16px;font-weight:700;color:#38bdf8;">On-Time</div>
+            <div style="font-size:10px;color:#64748b;">Schedule Status</div>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#cbd5e1;">
+          <span>Next Stop: <b id="track-next-stop" style="color:#fff;">School Zone</b></span>
+          <a id="seat-status-link" href="seat-status.html?bus_id=1" class="action-btn" style="padding:5px 12px;font-size:11px;font-weight:600;background:rgba(216,78,85,0.2);color:#fca5a5;border:1px solid rgba(216,78,85,0.4);">
+            <i class="fa-solid fa-chair"></i> View 2D Seats
+          </a>
+        </div>
+
+        <!-- Driver Info Card (from Bustapp & UI Kit Reference) -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:10px 14px;margin-top:14px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <img src="/assets/images/driver_cockpit.jpg" alt="Driver" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #10b981;">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:#fff;">Michael Vance <span style="font-size:10px;color:#f59e0b;font-weight:600;">★ 4.9</span></div>
+              <div style="font-size:10px;color:#94a3b8;">Assigned Driver • ESP32-S3 Verified</div>
+            </div>
+          </div>
+          <a href="tel:18005550199" style="background:rgba(16,185,129,0.15);color:#10b981;border:1px solid rgba(16,185,129,0.3);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;">
+            <i class="fa-solid fa-phone"></i> Driver Dispatch
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab active"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/map.js"></script>
+  <script>
+    let pMap = null;
+    let currentBusId = 1;
+
+    const ROUTE_STOPS_MAP = {
+      '101': [
+        { code: 'ST-101', name: 'Hospital Stop', icon: '🏥', seq: 1 },
+        { code: 'ST-102', name: 'School Zone', icon: '🏫', seq: 2 },
+        { code: 'ST-103', name: 'Market Area', icon: '🛒', seq: 3 },
+        { code: 'ST-104', name: 'Bus Terminal', icon: '🚌', seq: 4 }
+      ],
+      '202': [
+        { code: 'ST-201', name: 'Airport Terminal', icon: '✈️', seq: 1 },
+        { code: 'ST-202', name: 'Aerospace Tech Park', icon: '🏢', seq: 2 },
+        { code: 'ST-203', name: 'Highway Interchange', icon: '🛣️', seq: 3 },
+        { code: 'ST-204', name: 'Downtown District', icon: '🏙️', seq: 4 }
+      ],
+      '303': [
+        { code: 'ST-301', name: 'University Campus', icon: '🎓', seq: 1 },
+        { code: 'ST-302', name: 'Medical College', icon: '🏥', seq: 2 },
+        { code: 'ST-303', name: 'Civic Arts Center', icon: '🎭', seq: 3 },
+        { code: 'ST-304', name: 'South Commercial Mall', icon: '🛍️', seq: 4 }
+      ]
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      initSocket();
+      await populateBusDropdown();
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const bId = urlParams.get('bus_id');
+      const rId = urlParams.get('route_id');
+      if (bId) {
+        currentBusId = parseInt(bId);
+      } else if (rId) {
+        currentBusId = parseInt(rId);
+      }
+      
+      const selectEl = document.getElementById('passenger-bus-select');
+      if (selectEl) selectEl.value = currentBusId;
+
+      pMap = new SmartBusMap('passenger-live-map');
+      pMap.selectedBusId = currentBusId;
+      pMap.init([12.9850, 77.6100], 14);
+
+      loadBusTrackingInfo(currentBusId);
+    });
+
+    async function populateBusDropdown() {
+      const res = await apiRequest('/buses');
+      const selectEl = document.getElementById('passenger-bus-select');
+      if (res && res.buses && selectEl) {
+        selectEl.innerHTML = res.buses.map(b => {
+          const isReal = b.bus_number === 'SB-101' || b.data_source === 'REAL';
+          const icon = b.route_number === '101' ? '🟢' : (b.route_number === '202' ? '🔵' : '🔴');
+          const routeStr = b.route_name ? `Line ${b.route_number} ${b.route_name}` : 'Depot Standby';
+          return `<option value="${b.id}">${icon} ${b.bus_number} (${routeStr} - ${isReal ? 'Real IoT' : 'Auto Sim'})</option>`;
+        }).join('');
+      }
+    }
+
+    async function loadBusTrackingInfo(busId) {
+      const res = await apiRequest(`/passenger/bus/${busId}/tracking`);
+      if (res && res.bus) {
+        const b = res.bus;
+        const color = b.route_color || (b.route_number === '101' ? '#10b981' : (b.route_number === '202' ? '#3b82f6' : '#ef4444'));
+        const badge = document.getElementById('track-bus-badge');
+        if (badge) {
+          badge.textContent = `Bus ${b.bus_number} (${b.data_source === 'REAL' ? 'Physical IoT' : 'Autonomous Sim'})`;
+          badge.style.background = color;
+        }
+        
+        const routeNameEl = document.getElementById('track-route-name');
+        if (routeNameEl) routeNameEl.textContent = b.route_name ? `Line ${b.route_number}: ${b.route_name}` : 'Active Transit Line';
+        
+        const fareEl = document.getElementById('track-fare-amount');
+        if (fareEl) {
+          const fareVal = b.fare || (res.route ? res.route.fare : 30.0);
+          fareEl.innerHTML = `<i class="fa-solid fa-ticket"></i> Ticket Fare: ₹${Number(fareVal).toFixed(2)} / passenger`;
+        }
+
+        const etaMinutes = (b.reported_eta !== undefined && b.reported_eta !== null) ? b.reported_eta : (res.eta?.eta_minutes || 5);
+        const etaEl = document.getElementById('track-dynamic-eta');
+        if (etaEl) etaEl.textContent = `~${etaMinutes} mins`;
+        
+        const speedEl = document.getElementById('track-speed');
+        if (speedEl) speedEl.textContent = `${(b.speed || 0).toFixed(0)} km/h`;
+        
+        const seatsEl = document.getElementById('track-seats');
+        if (seatsEl) seatsEl.textContent = `${b.available_seats} Free`;
+        
+        const statusEl = document.getElementById('track-status');
+        if (statusEl) statusEl.textContent = b.emergency_status ? 'EMERGENCY' : (b.status === 'active' ? 'On-Time' : b.status.toUpperCase());
+        
+        const currentStopName = b.last_stop_name || 'Hospital Stop';
+        const targetStopName = res.eta?.target_stop_name || b.next_stop_name || 'School Zone';
+        const nextStopEl = document.getElementById('track-next-stop');
+        if (nextStopEl) nextStopEl.textContent = `${targetStopName}`;
+        
+        const seatLink = document.getElementById('seat-status-link');
+        if (seatLink) seatLink.href = `seat-status.html?bus_id=${b.id}`;
+
+        renderTimeline(b.route_number || '101', currentStopName || targetStopName, color);
+
+        if (pMap) {
+          pMap.updateBusMarker(b);
+          pMap.selectBus(b.id);
+        }
+      }
+    }
+
+    function renderTimeline(routeNumber, currentTargetStop, color) {
+      const timelineContainer = document.getElementById('route-timeline-container');
+      const labelEl = document.getElementById('progression-route-label');
+      if (!timelineContainer) return;
+
+      const stops = ROUTE_STOPS_MAP[routeNumber] || ROUTE_STOPS_MAP['101'];
+      if (labelEl) {
+        labelEl.textContent = `Line ${routeNumber} Corridor (${stops.length} Stops)`;
+        labelEl.style.color = color;
+      }
+
+      let html = `<div class="stop-timeline-track" style="background:${color}33;"></div>`;
+      
+      let foundTarget = false;
+      stops.forEach((s, idx) => {
+        const isTarget = currentTargetStop && (currentTargetStop.toLowerCase().includes(s.name.toLowerCase()) || s.name.toLowerCase().includes(currentTargetStop.toLowerCase()));
+        let dotClass = 'stop-node-dot';
+        let dotStyle = '';
+        
+        if (isTarget) {
+          dotClass += ' active-target';
+          dotStyle = `background:${color};border-color:#ffffff;box-shadow:0 0 12px ${color};`;
+          foundTarget = true;
+        } else if (!foundTarget && idx === 0) {
+          dotClass += ' passed';
+          dotStyle = `background:#0284c7;border-color:#38bdf8;`;
+        }
+
+        html += `
+          <div class="stop-timeline-node">
+            <div class="${dotClass}" style="${dotStyle}">${s.seq}</div>
+            <div class="stop-node-name">${s.icon} ${s.name}</div>
+          </div>
+        `;
+      });
+
+      timelineContainer.innerHTML = html;
+    }
+
+    function switchTrackedBus(val) {
+      currentBusId = parseInt(val);
+      loadBusTrackingInfo(currentBusId);
+    }
+
+    document.addEventListener('busTelemetryUpdate', (e) => {
+      if (e.detail && e.detail.bus && e.detail.bus.id === currentBusId) {
+        loadBusTrackingInfo(currentBusId);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vehicle Maintenance & Health Management | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+  <style>
+    .diag-control-panel {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 900px) {
+      .diag-control-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+    .preset-btn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-glass);
+      border-radius: 10px;
+      padding: 8px 12px;
+      color: #f1f5f9;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      text-align: left;
+    }
+    .preset-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+    }
+    .preset-btn.danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: #ef4444;
+    }
+    .preset-btn.warning:hover {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: #f59e0b;
+    }
+    .preset-btn.success:hover {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #10b981;
+    }
+    .realloc-banner {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .realloc-banner.active {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item active"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <div>
+            <h1 class="page-title">Vehicle Maintenance & Priority Engine</h1>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">
+              Manual Maintenance Data Entry • Rule-Based Priority Ranking • Autonomous Standby Bus Reallocation
+            </div>
+          </div>
+        </div>
+        <div class="nav-right">
+          <button class="action-btn" onclick="loadMaintenanceData()"><i class="fa-solid fa-rotate"></i> Refresh Analysis</button>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <!-- Live AI Reallocation Notification Banner -->
+        <div id="ai-realloc-banner" class="realloc-banner">
+          <div style="font-size:28px;color:#a855f7;"><i class="fa-solid fa-robot"></i></div>
+          <div style="flex:1;">
+            <div style="font-weight:700;color:#fff;font-size:14px;" id="realloc-banner-title">Maintenance Agent Reallocation Recommendation</div>
+            <div style="font-size:12px;color:#e2e8f0;margin-top:2px;" id="realloc-banner-desc">Route was automatically reassigned to a healthy standby bus.</div>
+          </div>
+          <button class="action-btn" onclick="document.getElementById('ai-realloc-banner').classList.remove('active')" style="padding:4px 10px;font-size:11px;">Dismiss</button>
+        </div>
+
+        <!-- Top KPI Grid -->
+        <div class="kpi-grid">
+          <div class="glass-panel kpi-card" style="--card-accent: #10b981;">
+            <div class="kpi-info">
+              <h4>Fleet Health Index</h4>
+              <div class="kpi-value" id="fleet-health-score">--</div>
+              <div class="kpi-trend"><i class="fa-solid fa-check"></i> Rule & ML Engine</div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+          </div>
+
+          <div class="glass-panel kpi-card" style="--card-accent: #38bdf8;">
+            <div class="kpi-info">
+              <h4>Depot Standby Units</h4>
+              <div class="kpi-value" id="standby-count">-- Ready</div>
+              <div class="kpi-trend" style="color:#38bdf8;"><i class="fa-solid fa-bolt"></i> Ready for Swap</div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-bus-simple"></i></div>
+          </div>
+
+          <div class="glass-panel kpi-card" style="--card-accent: #f59e0b;">
+            <div class="kpi-info">
+              <h4>Priority 1 / Critical Buses</h4>
+              <div class="kpi-value" id="critical-bus-count">0</div>
+              <div class="kpi-trend" style="color:#f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> Immediate Service</div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+          </div>
+
+          <div class="glass-panel kpi-card" style="--card-accent: #ef4444;">
+            <div class="kpi-info">
+              <h4>Workshop / Replaced</h4>
+              <div class="kpi-value" id="maintenance-bus-count">0</div>
+              <div class="kpi-trend" style="color:#ef4444;"><i class="fa-solid fa-wrench"></i> In Service</div>
+            </div>
+            <div class="kpi-icon"><i class="fa-solid fa-car-burst"></i></div>
+          </div>
+        </div>
+
+        <!-- Dual Column: Manual Maintenance Data Entry & Automatic Priority Ranking -->
+        <div class="diag-control-panel">
+          <!-- Manual Maintenance Data Entry Form (Sections 2 & 23) -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-pen-to-square" style="color:#38bdf8;"></i> Manual Maintenance Data Entry
+              </div>
+              <span class="badge-tag badge-warning">Admin Entered Data</span>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin-bottom:14px;">
+              Enter maintenance inspection values. Physical sensors for battery, temperature, and tire pressure are not present; all data is ingested as <b>Manual Maintenance Data</b>.
+            </p>
+
+            <form id="manual-maintenance-form" onsubmit="handleManualMaintenanceSubmit(event)">
+              <div class="form-group">
+                <label class="form-label">Select Target Bus</label>
+                <select id="maint-bus-select" class="form-control-custom" onchange="onBusSelectChange()">
+                  <!-- Dynamically populated -->
+                </select>
+              </div>
+
+              <!-- Quick Presets -->
+              <div style="margin-bottom:14px;">
+                <label class="form-label" style="font-size:11px;color:#94a3b8;">Quick Test Presets:</label>
+                <div class="preset-btn-grid">
+                  <button type="button" class="preset-btn danger" onclick="applyPresetValues(10.8, 98.0, 27.0, 62.0, 73.0, 80.0, 'Critical degradation test')">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Critical Overheat (98°C)
+                  </button>
+                  <button type="button" class="preset-btn warning" onclick="applyPresetValues(11.2, 85.0, 24.0, 70.0, 80.0, 85.0, 'Low battery & flat tire')">
+                    <i class="fa-solid fa-battery-quarter"></i> Low Battery (11.2V)
+                  </button>
+                  <button type="button" class="preset-btn success" onclick="applyPresetValues(12.6, 84.0, 32.0, 95.0, 95.0, 95.0, 'Pristine overhaul')">
+                    <i class="fa-solid fa-circle-check"></i> Nominal Pristine
+                  </button>
+                </div>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                <div class="form-group">
+                  <label class="form-label">Battery Voltage (V)</label>
+                  <input type="number" id="maint-battery" class="form-control-custom" step="0.1" value="12.6" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Engine Temperature (°C)</label>
+                  <input type="number" id="maint-temp" class="form-control-custom" step="0.5" value="84.5" required>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:12px;">
+                <label class="form-label">Tire Pressure (PSI)</label>
+                <input type="number" id="maint-tire" class="form-control-custom" step="0.5" value="32.0" required>
+              </div>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;">
+                <div class="form-group">
+                  <label class="form-label">Brake Health (%)</label>
+                  <input type="number" id="maint-brake" class="form-control-custom" min="0" max="100" value="90" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Engine Health (%)</label>
+                  <input type="number" id="maint-engine" class="form-control-custom" min="0" max="100" value="92" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Transmission (%)</label>
+                  <input type="number" id="maint-trans" class="form-control-custom" min="0" max="100" value="95" required>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Maintenance Notes & Observations</label>
+                <textarea id="maint-notes" class="form-control-custom" rows="2" placeholder="Routine inspection notes, component wear notes..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-submit" style="width:100%;">
+                <i class="fa-solid fa-floppy-disk"></i> Save Manual Maintenance Data & Run Maintenance Agent
+              </button>
+            </form>
+          </div>
+
+          <!-- Rule-Based Fleet Maintenance Priorities & Recommendations (Section 12) -->
+          <div class="glass-panel" style="display:flex;flex-direction:column;">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-list-ol" style="color:#a855f7;"></i> Rule-Based Maintenance Priority Ranking
+              </div>
+              <span class="badge-tag badge-info">Automated Analysis</span>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin-bottom:10px;">
+              The Maintenance Agent automatically evaluates all buses and computes priority rankings to reduce dispatcher workload:
+            </p>
+
+            <!-- Priority List Table -->
+            <div class="table-responsive" style="flex:1;max-height:340px;overflow-y:auto;margin-bottom:14px;">
+              <table class="custom-table" style="font-size:12px;">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Bus</th>
+                    <th>Health</th>
+                    <th>Priority</th>
+                    <th>Recommended Action</th>
+                    <th>Agent Swap</th>
+                  </tr>
+                </thead>
+                <tbody id="priority-ranking-tbody">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Standby Depot Pool -->
+            <div style="background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;border:1px solid var(--border-glass);">
+              <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px;display:flex;justify-content:space-between;">
+                <span><i class="fa-solid fa-warehouse" style="color:#10b981;"></i> Standby Depot Units Available:</span>
+                <span id="standby-pool-tag" style="color:#38bdf8;">-- Ready</span>
+              </div>
+              <div id="standby-buses-chips" style="display:flex;flex-wrap:wrap;gap:8px;">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Component Wear & Remaining Useful Life (RUL) Forecast Table (ML Layer) -->
+        <div class="glass-panel">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fa-solid fa-chart-line" style="color:#38bdf8;"></i> Predictive Degradation & ML Remaining Useful Life (RUL) Forecast
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <select id="filter-component-bus" class="form-control-custom" style="padding:4px 10px;font-size:12px;" onchange="filterRecordsByBus(this.value)">
+                <option value="ALL">Show All Fleet Buses</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Bus Identifier</th>
+                  <th>Component</th>
+                  <th>Health %</th>
+                  <th>Degradation</th>
+                  <th>Estimated RUL</th>
+                  <th>Predicted Failure</th>
+                  <th>ML Diagnostic Analysis</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="maintenance-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    let allFleetBuses = [];
+    let allMaintenanceRecords = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMaintenanceData();
+      loadPriorityList();
+
+      document.addEventListener('busTelemetryUpdate', () => {
+        loadPriorityList();
+      });
+    });
+
+    async function loadMaintenanceData(refreshSelect = true) {
+      const [maintRes, busesRes] = await Promise.all([
+        apiRequest('/maintenance/overview'),
+        apiRequest('/buses')
+      ]);
+
+      if (busesRes && busesRes.buses) {
+        allFleetBuses = busesRes.buses;
+        if (refreshSelect) {
+          populateBusSelects(busesRes.buses);
+        }
+        
+        const standbyList = busesRes.buses.filter(b => b.status === 'standby' || b.status === 'idle');
+        const maintList = busesRes.buses.filter(b => b.status === 'maintenance');
+        
+        document.getElementById('standby-count').textContent = `${standbyList.length} Ready`;
+        document.getElementById('standby-pool-tag').textContent = `${standbyList.length} Ready`;
+        document.getElementById('maintenance-bus-count').textContent = maintList.length;
+        
+        const chipsContainer = document.getElementById('standby-buses-chips');
+        if (chipsContainer) {
+          if (standbyList.length === 0) {
+            chipsContainer.innerHTML = `<span style="font-size:11px;color:#f59e0b;"><i class="fa-solid fa-triangle-exclamation"></i> No standby units in depot.</span>`;
+          } else {
+            chipsContainer.innerHTML = standbyList.map(sb => `
+              <span class="badge-tag badge-success" style="font-size:11px;padding:4px 8px;">
+                <i class="fa-solid fa-check"></i> ${sb.bus_number} (${sb.health_score.toFixed(0)}% Health)
+              </span>
+            `).join('');
+          }
+        }
+      }
+
+      if (maintRes && maintRes.data) {
+        document.getElementById('fleet-health-score').textContent = `${maintRes.data.fleet_health_index}%`;
+        allMaintenanceRecords = maintRes.data.records || [];
+        renderComponentRecords(allMaintenanceRecords);
+      }
+    }
+
+    async function loadPriorityList() {
+      const res = await apiRequest('/maintenance/priority-list');
+      const tbody = document.getElementById('priority-ranking-tbody');
+      if (res && res.priorities && tbody) {
+        let criticalCount = 0;
+        tbody.innerHTML = res.priorities.map(p => {
+          const isCrit = (p.priority_level === 'CRITICAL');
+          if (isCrit) criticalCount++;
+          const isHigh = (p.priority_level === 'HIGH' || p.priority_level === 'SERVICE_REQUIRED');
+          const badgeClass = isCrit ? 'badge-danger' : (isHigh ? 'badge-warning' : 'badge-success');
+
+          const swapBtn = (isCrit || isHigh) ? `
+            <button class="action-btn btn-primary" onclick="executeMaintenanceSwap(${p.bus_id}, '${p.bus_number}')" style="padding:4px 8px;font-size:10px;" title="Approve Automated Swap with Standby Bus">
+              <i class="fa-solid fa-right-left"></i> Swap Unit
+            </button>
+          ` : `<span style="color:#64748b;font-size:11px;">Nominal</span>`;
+
+          return `
+            <tr>
+              <td><b>#${p.rank}</b></td>
+              <td><b>${p.bus_number}</b></td>
+              <td><b style="color:${p.health_score < 70 ? '#ef4444' : '#10b981'};">${p.health_score.toFixed(0)}%</b></td>
+              <td><span class="badge-tag ${badgeClass}">${p.priority_level}</span></td>
+              <td style="font-size:11px;">${p.recommendation}</td>
+              <td>${swapBtn}</td>
+            </tr>
+          `;
+        }).join('');
+
+        document.getElementById('critical-bus-count').textContent = criticalCount;
+      }
+    }
+
+    async function executeMaintenanceSwap(busId, busNumber) {
+      const confirmed = confirm(
+        `🤖 AI FLEET AGENT REALLOCATION:\n\n` +
+        `Do you approve automated replacement of Bus ${busNumber} with the best available healthy standby bus?\n\n` +
+        `• Standby bus will take over the active route\n` +
+        `• ${busNumber} will be decommissioned to depot maintenance\n\n` +
+        `Click OK to execute.`
+      );
+
+      if (!confirmed) return;
+
+      const res = await apiRequest('/fleet/approve-reallocation', 'POST', {
+        degraded_bus_id: busId,
+        reason: `Admin Approved Maintenance Swap for ${busNumber}`
+      });
+
+      if (res && res.success) {
+        showToast(`🎉 [AI AGENT SWAP COMPLETE] ${busNumber} swapped with standby unit ${res.replacement_bus?.bus_number || 'standby'}!`, 'success');
+        loadMaintenanceData();
+        loadPriorityList();
+      } else {
+        showToast(res.message || 'Swap could not be completed (check standby pool).', 'danger');
+      }
+    }
+
+    function populateBusSelects(buses) {
+      const select = document.getElementById('maint-bus-select');
+      const filterSelect = document.getElementById('filter-component-bus');
+      if (!select) return;
+
+      select.innerHTML = buses.map(b => {
+        const isReal = (b.bus_number === 'SB-101');
+        return `<option value="${b.id}">${b.bus_number} [${isReal ? 'Real SB-101' : 'Simulated'}] - Health: ${b.health_score.toFixed(0)}%</option>`;
+      }).join('');
+
+      if (filterSelect) {
+        filterSelect.innerHTML = `<option value="ALL">Show All Fleet Buses</option>` + buses.map(b => `
+          <option value="${b.bus_number}">${b.bus_number}</option>
+        `).join('');
+      }
+
+      onBusSelectChange();
+    }
+
+    function onBusSelectChange() {
+      const select = document.getElementById('maint-bus-select');
+      const busId = parseInt(select.value);
+      const bus = allFleetBuses.find(b => b.id === busId);
+      if (bus) {
+        document.getElementById('maint-battery').value = bus.battery_voltage.toFixed(1);
+        document.getElementById('maint-temp').value = bus.engine_temp.toFixed(1);
+        document.getElementById('maint-tire').value = bus.tire_pressure.toFixed(1);
+        document.getElementById('maint-brake').value = (bus.brake_health || 85).toFixed(0);
+        document.getElementById('maint-engine').value = (bus.engine_health || 90).toFixed(0);
+        document.getElementById('maint-trans').value = (bus.transmission_health || 92).toFixed(0);
+        document.getElementById('maint-notes').value = bus.maintenance_notes || '';
+      }
+    }
+
+    function applyPresetValues(v, t, p, brake, eng, trans, notes) {
+      document.getElementById('maint-battery').value = v;
+      document.getElementById('maint-temp').value = t;
+      document.getElementById('maint-tire').value = p;
+      document.getElementById('maint-brake').value = brake;
+      document.getElementById('maint-engine').value = eng;
+      document.getElementById('maint-trans').value = trans;
+      document.getElementById('maint-notes').value = notes;
+      showToast('Preset loaded. Click save to record manual maintenance data.', 'info');
+    }
+
+    async function handleManualMaintenanceSubmit(e) {
+      e.preventDefault();
+      const busId = parseInt(document.getElementById('maint-bus-select').value);
+      const battery = parseFloat(document.getElementById('maint-battery').value);
+      const temp = parseFloat(document.getElementById('maint-temp').value);
+      const tire = parseFloat(document.getElementById('maint-tire').value);
+      const brake = parseFloat(document.getElementById('maint-brake').value);
+      const engine = parseFloat(document.getElementById('maint-engine').value);
+      const transmission = parseFloat(document.getElementById('maint-trans').value);
+      const notes = document.getElementById('maint-notes').value;
+
+      const res = await apiRequest('/maintenance/manual-entry', 'POST', {
+        bus_id: busId,
+        battery_voltage: battery,
+        engine_temp: temp,
+        tire_pressure: tire,
+        brake_health: brake,
+        engine_health: engine,
+        transmission_health: transmission,
+        notes: notes
+      });
+
+      if (res.success) {
+        showToast(`Manual maintenance data saved for Bus ${res.bus.bus_number}! Priority: ${res.priority}`, 'success');
+        
+        if (res.reallocation && res.reallocation.reallocated) {
+          const r = res.reallocation;
+          const banner = document.getElementById('ai-realloc-banner');
+          document.getElementById('realloc-banner-title').textContent = `🤖 AI Auto-Reallocation: ${r.degraded_bus.bus_number} replaced by ${r.replacement_bus.bus_number}!`;
+          document.getElementById('realloc-banner-desc').textContent = `Degradation detected (${r.reason}). Route ${r.route_number} was automatically transferred to standby bus ${r.replacement_bus.bus_number}.`;
+          banner.classList.add('active');
+        }
+
+        loadMaintenanceData();
+        loadPriorityList();
+      } else {
+        showToast(res.message, 'danger');
+      }
+    }
+
+    function renderComponentRecords(records) {
+      const tbody = document.getElementById('maintenance-table-body');
+      if (!tbody) return;
+
+      if (records.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#64748b;padding:20px;">No maintenance records found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = records.map(r => {
+        const isCritical = r.status === 'CRITICAL' || r.health_percentage < 35;
+        const isAttention = r.status === 'ATTENTION' || r.health_percentage < 65;
+        const color = isCritical ? '#ef4444' : (isAttention ? '#f59e0b' : '#10b981');
+        const badgeClass = isCritical ? 'badge-danger' : (isAttention ? 'badge-warning' : 'badge-success');
+
+        return `
+          <tr>
+            <td class="primary-cell">
+              <b>${r.bus_number}</b>
+            </td>
+            <td><span class="badge-tag ${badgeClass}">${r.component}</span></td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <b style="color:${color};">${r.health_percentage.toFixed(1)}%</b>
+                <div class="progress-bar-custom" style="width:60px;height:6px;">
+                  <div class="progress-fill" style="width:${r.health_percentage}%;background:${color};"></div>
+                </div>
+              </div>
+            </td>
+            <td>${r.degradation_score.toFixed(1)}%</td>
+            <td><b style="color:#38bdf8;">${r.rul_days} Days</b></td>
+            <td><code>${r.predicted_failure_date || 'N/A'}</code></td>
+            <td style="font-size:12px;max-width:280px;">${r.description}</td>
+            <td>
+              <button class="action-btn btn-primary" style="padding:4px 10px;font-size:11px;" onclick="serviceComponent(${r.id})">
+                <i class="fa-solid fa-check"></i> Service
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterRecordsByBus(busNumber) {
+      if (busNumber === 'ALL') {
+        renderComponentRecords(allMaintenanceRecords);
+      } else {
+        const filtered = allMaintenanceRecords.filter(r => r.bus_number === busNumber);
+        renderComponentRecords(filtered);
+      }
+    }
+
+    async function serviceComponent(recordId) {
+      const res = await apiRequest('/maintenance/service', 'POST', { record_id: recordId });
+      if (res.success) {
+        showToast('Component serviced. Health restored to 95%.', 'success');
+        loadMaintenanceData();
+        loadPriorityList();
+      }
+    }
+  </script>
+</body>
+</html>

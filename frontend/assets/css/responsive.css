@@ -1,0 +1,58 @@
+/* ============================================================
+   SMART BUS - RESPONSIVE BREAKPOINTS & MOBILE DRAWER
+   ============================================================ */
+
+.mobile-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+  }
+
+  .mobile-toggle {
+    display: block;
+  }
+
+  .admin-sidebar {
+    transform: translateX(-100%);
+    width: 270px;
+  }
+
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .admin-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .admin-navbar {
+    padding: 0 16px;
+  }
+
+  .admin-content {
+    padding: 20px 16px;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}

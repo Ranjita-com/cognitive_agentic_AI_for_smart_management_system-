@@ -1,0 +1,51 @@
+<!-- Card Templates for Bus, Route, and Metric Items -->
+<template id="bus-card-template">
+  <div class="glass-panel bus-card">
+    <div class="bus-card-header">
+      <div class="bus-id-badge">
+        <span class="bus-number">{bus_number}</span>
+        <span class="status-pill {status_class}">{status}</span>
+      </div>
+      <span style="font-size:11px;color:#94a3b8;"><i class="fa-solid fa-microchip"></i> {device_mac}</span>
+    </div>
+
+    <div class="bus-route-info">
+      <i class="fa-solid fa-route" style="color:#38bdf8;"></i> <span>{route_name}</span>
+    </div>
+
+    <div class="bus-progress-wrap">
+      <div class="bus-progress-labels">
+        <span>Passenger Capacity</span>
+        <span><b>{passengers}/{capacity}</b> ({occupancy}%)</span>
+      </div>
+      <div class="progress-bar-custom">
+        <div class="progress-fill {progress_color_class}" style="width: {occupancy}%;"></div>
+      </div>
+    </div>
+
+    <div class="bus-metrics-row">
+      <div class="metric-col">
+        <div class="val">{speed} km/h</div>
+        <div class="lbl">Speed</div>
+      </div>
+      <div class="metric-col">
+        <div class="val">{battery}V</div>
+        <div class="lbl">Battery</div>
+      </div>
+      <div class="metric-col">
+        <div class="val">{temp}°C</div>
+        <div class="lbl">Engine Temp</div>
+      </div>
+    </div>
+
+    <div class="bus-card-footer">
+      <div class="driver-mini-info">
+        <i class="fa-solid fa-user-tie" style="color:#38bdf8;"></i>
+        <span>{driver_name}</span>
+      </div>
+      <a href="bus-details.html?bus_id={bus_id}" class="action-btn" style="padding:6px 12px;font-size:12px;">
+        Telemetry <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</template>

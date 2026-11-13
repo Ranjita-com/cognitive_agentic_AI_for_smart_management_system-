@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transit Timetables & Schedules | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;"><i class="fa-solid fa-arrow-left"></i></a>
+          <h2 class="passenger-title">Timetables & Schedules</h2>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding:20px;" id="timetables-list">
+      <!-- Rendered dynamically -->
+    </div>
+
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab active"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', loadTimetable);
+
+    async function loadTimetable() {
+      const res = await apiRequest('/passenger/timetable');
+      const container = document.getElementById('timetables-list');
+      if (res && res.timetables && container) {
+        container.innerHTML = res.timetables.map(t => `
+          <div class="glass-panel" style="padding:18px;border-radius:14px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <span class="badge-tag" style="background:#38bdf8;color:#fff;font-weight:700;">Line ${t.route_number}</span>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:13px;font-weight:700;color:#10b981;"><i class="fa-solid fa-ticket"></i> ₹${t.fare ? Number(t.fare).toFixed(2) : '30.00'}</span>
+                <span style="font-size:12px;color:#38bdf8;font-weight:600;"><i class="fa-solid fa-arrows-rotate"></i> Every ${t.frequency_mins}m</span>
+              </div>
+            </div>
+            <h3 style="font-size:16px;color:#fff;margin-bottom:4px;">${t.route_name}</h3>
+            <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">${t.origin} ➔ ${t.destination}</div>
+
+            <div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;display:flex;justify-content:space-between;font-size:12px;margin-bottom:12px;">
+              <span><i class="fa-solid fa-sun" style="color:#f59e0b;"></i> First: <b>${t.first_bus}</b></span>
+              <span><i class="fa-solid fa-moon" style="color:#6366f1;"></i> Last: <b>${t.last_bus}</b></span>
+              <span><i class="fa-solid fa-bus" style="color:#38bdf8;"></i> <b>${t.active_buses_count} Live</b></span>
+            </div>
+
+            <a href="tracking.html?route_id=${t.route_id}" class="btn-submit" style="display:block;text-align:center;text-decoration:none;padding:8px;font-size:13px;">
+              Track Line ${t.route_number}
+            </a>
+          </div>
+        `).join('');
+      }
+    }
+  </script>
+</body>
+</html>

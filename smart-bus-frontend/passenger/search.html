@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Available Buses & Routes | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+  <style>
+    .search-card-container {
+      padding: 18px;
+      border-radius: 16px;
+      margin-bottom: 16px;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+    .input-row-wrapper {
+      position: relative;
+      margin-bottom: 10px;
+    }
+    .swap-btn-floating {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 5;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .swap-btn-floating:hover {
+      background: #38bdf8;
+      color: #0f172a;
+      transform: translateY(-50%) rotate(180deg);
+    }
+    .quick-chips-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+    .quick-chips-scroll::-webkit-scrollbar { display: none; }
+    .route-chip-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: left;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .route-chip-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+    .route-dropdown-custom {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+    .route-dropdown-custom:focus {
+      border-color: #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <!-- Header -->
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;font-size:18px;"><i class="fa-solid fa-arrow-left"></i></a>
+          <div>
+            <h2 class="passenger-title" style="margin:0;font-size:17px;">Find Available Buses</h2>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Select stops or choose an express line</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding: 16px 20px 80px;">
+      <!-- Search Form Box -->
+      <div class="search-card-container">
+        <form id="passenger-search-form">
+          <!-- Quick Route Selector Dropdown -->
+          <label style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">
+            <i class="fa-solid fa-layer-group" style="color:#38bdf8;"></i> Select Route Line
+          </label>
+          <select id="route-select-dropdown" class="route-dropdown-custom">
+            <option value="">-- Or Quick Select by Route Line --</option>
+          </select>
+
+          <!-- Origin & Destination Inputs -->
+          <label style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">
+            <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> Select Origin & Destination Stops
+          </label>
+          
+          <div class="input-row-wrapper">
+            <div class="search-input-group" style="margin-bottom:0;">
+              <i class="fa-solid fa-circle-dot" style="color:#10b981;"></i>
+              <input type="text" id="search-origin" class="form-control-custom" placeholder="From (e.g. Hospital Stop, Airport, Tech Park)" autocomplete="off">
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:center;margin:-4px 0;">
+            <button type="button" id="swap-locations-btn" style="background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.25);color:#38bdf8;padding:4px 14px;border-radius:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:6px;">
+              <i class="fa-solid fa-arrow-down-up-across-line"></i> Swap Origin / Destination
+            </button>
+          </div>
+
+          <div class="input-row-wrapper" style="margin-top:4px;">
+            <div class="search-input-group" style="margin-bottom:14px;">
+              <i class="fa-solid fa-location-dot" style="color:#ef4444;"></i>
+              <input type="text" id="search-dest" class="form-control-custom" placeholder="To (e.g. Bus Terminal, Downtown, Mall)" autocomplete="off">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" style="width:100%;padding:12px;font-size:14px;font-weight:700;">
+            <i class="fa-solid fa-magnifying-glass"></i> Find Available Buses & Seats
+          </button>
+        </form>
+      </div>
+
+      <!-- Quick Express Line Chips -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
+          <i class="fa-solid fa-bolt" style="color:#f59e0b;"></i> Popular Express Lines:
+        </div>
+        <div id="quick-route-chips" class="quick-chips-scroll">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Search Results List -->
+      <div id="search-results-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Bottom App Navigation Bar -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab active"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/search.js"></script>
+</body>
+</html>

@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Driver Face Authentication & Attentiveness Studio | Smart Bus PRO</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/forms.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+
+  <!-- MediaPipe Face Mesh & Camera Utils for Automatic Real-time Eye (EAR) & Mouth (MAR) Tracking -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+
+  <style>
+    .studio-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 960px) {
+      .studio-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .video-viewport {
+      position: relative;
+      background: #090d16;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border-glass);
+      min-height: 420px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hud-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 16px;
+    }
+    .hud-reticle-box {
+      position: absolute;
+      top: 20%;
+      left: 25%;
+      width: 50%;
+      height: 60%;
+      border: 2px dashed #10b981;
+      border-radius: 14px;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 8px;
+    }
+    .hud-reticle-box.warning {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.08);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    }
+    .hud-reticle-box.critical {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.12);
+      animation: pulseAlertCritical 0.6s infinite alternate;
+    }
+    @keyframes pulseAlertCritical {
+      0% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); border-color: #ef4444; }
+      100% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.95); border-color: #ff1111; }
+    }
+    .bus-driver-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .bus-driver-card:hover {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: #38bdf8;
+      transform: translateX(4px);
+    }
+    .bus-driver-card.selected {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+    }
+    .meter-bar-fill {
+      height: 8px;
+      border-radius: 4px;
+      transition: width 0.2s ease, background 0.2s ease;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: monospace;
+    }
+    .status-pill.active {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border: 1px solid #10b981;
+    }
+    .status-pill.warning {
+      background: rgba(245, 158, 11, 0.25);
+      color: #f59e0b;
+      border: 1px solid #f59e0b;
+    }
+    .status-pill.critical {
+      background: rgba(239, 68, 68, 0.3);
+      color: #ef4444;
+      border: 1px solid #ef4444;
+      animation: pulseAlertCritical 0.8s infinite alternate;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item active"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <div>
+            <h1 class="page-title">Driver Face Authentication & Attentiveness Studio</h1>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">
+              Dual-Signal Computer Vision: Eye Closure (EAR) + Mouth Opening / Yawning (MAR)
+            </div>
+          </div>
+        </div>
+        <div class="nav-right">
+          <a href="buses.html" class="action-btn" style="padding:6px 12px;"><i class="fa-solid fa-arrows-rotate"></i> Swap Bus</a>
+          <button class="action-btn btn-primary" id="top-webcam-btn" onclick="toggleWebcamFeed()"><i class="fa-solid fa-camera"></i> <span id="top-webcam-btn-text">Enable Live Camera</span></button>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <!-- Live Auto-Detection Instruction & Control Strip -->
+        <div class="glass-panel" style="padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;border-left:4px solid #10b981;background:rgba(16,185,129,0.05);flex-wrap:wrap;gap:14px;">
+          <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:280px;">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(56,189,248,0.15);display:flex;align-items:center;justify-content:center;color:#38bdf8;font-size:22px;">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <b style="color:#fff;font-size:14px;">Real-Time Eye (EAR) &amp; Yawn / Mouth (MAR) Inactivity Recognition</b>
+                <span class="status-pill active" id="auto-mode-badge"><i class="fa-solid fa-bolt"></i> DUAL CV AI ACTIVE</span>
+              </div>
+              <div style="font-size:12px;color:#94a3b8;margin-top:3px;">
+                • <b>Fully Inactive (Swap Needed)</b>: When driver opens full mouth (yawns) <b>AND</b> closes eyes &rarr; Urgent exchange required!<br>
+                • <b>Slightly Inactive</b>: When driver <i>only yawns</i> OR <i>only closes eyes</i> &rarr; Caution / drowsiness detected.
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="action-btn btn-primary" id="main-webcam-btn" onclick="toggleWebcamFeed()" style="font-size:12px;padding:8px 16px;">
+              <i class="fa-solid fa-video"></i> <span id="main-webcam-btn-text">Start Live Camera</span>
+            </button>
+            <button class="action-btn" onclick="toggleSimulationPreset('FULLY_INACTIVE')" style="font-size:12px;padding:8px 14px;background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#fca5a5;">
+              <i class="fa-solid fa-triangle-exclamation"></i> Test Full Inactivity (Swap)
+            </button>
+          </div>
+        </div>
+
+        <!-- Critical Emergency Swap Banner -->
+        <div id="drowsy-critical-banner" style="display:none;background:linear-gradient(135deg, rgba(239,68,68,0.45), rgba(185,28,28,0.6));border:2px solid #ef4444;border-radius:14px;padding:18px 24px;margin-bottom:20px;align-items:center;justify-content:space-between;animation:pulseAlertCritical 0.7s infinite alternate;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:52px;height:52px;border-radius:14px;background:#ef4444;display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;box-shadow:0 0 25px rgba(239,68,68,0.9);">
+              <i class="fa-solid fa-user-xmark"></i>
+            </div>
+            <div>
+              <b style="color:#fff;font-size:16px;" id="critical-banner-title">🚨 DRIVER FULLY INACTIVE: IMMEDIATE DRIVER SWAP REQUIRED!</b>
+              <div style="color:#fee2e2;font-size:13px;margin-top:4px;" id="critical-banner-desc">
+                Driver is opening mouth wide (yawning) with eyes closed! Bus cannot proceed safely. Immediate standby driver exchange dispatched.
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <a href="buses.html" class="action-btn btn-primary" style="padding:8px 16px;font-size:12px;background:#38bdf8;color:#000;font-weight:700;">
+              <i class="fa-solid fa-arrows-rotate"></i> Swap Driver Now
+            </a>
+            <button class="action-btn btn-danger" onclick="forceResolveAlert()" style="padding:8px 14px;font-size:12px;">
+              <i class="fa-solid fa-volume-xmark"></i> Silence
+            </button>
+          </div>
+        </div>
+
+        <!-- Warning Inactive Banner -->
+        <div id="drowsy-warning-banner" style="display:none;background:linear-gradient(135deg, rgba(245,158,11,0.3), rgba(217,119,6,0.35));border:2px solid #f59e0b;border-radius:14px;padding:16px 20px;margin-bottom:20px;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:#f59e0b;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+              <b style="color:#fff;font-size:15px;" id="warning-banner-title">⚠️ DRIVER SLIGHTLY INACTIVE: DROWSINESS / YAWNING DETECTED</b>
+              <div style="color:#fef3c7;font-size:12px;margin-top:3px;" id="warning-banner-desc">
+                Driver exhibits slight fatigue indicators. Audible pulse warning dispatched to cab.
+              </div>
+            </div>
+          </div>
+          <button class="action-btn" onclick="forceResolveAlert()" style="padding:6px 14px;font-size:12px;background:rgba(255,255,255,0.1);">
+            <i class="fa-solid fa-circle-check"></i> Acknowledge
+          </button>
+        </div>
+
+        <div class="studio-grid">
+          <!-- Left: Face Recognition Live HUD Viewport -->
+          <div class="glass-panel" style="padding:20px;display:flex;flex-direction:column;">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-face-smile" style="color:#38bdf8;"></i> Live Camera Facial Landmark &amp; Attentiveness HUD
+              </div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <span class="badge-tag badge-success" id="ai-engine-badge">AI: MEDIAPIPE FACE MESH</span>
+                <span class="badge-tag badge-info" id="hud-fps-badge" style="font-family:monospace;font-size:10px;">30 FPS</span>
+              </div>
+            </div>
+
+            <div class="video-viewport" id="video-container">
+              <video id="webcam-video" autoplay playsinline muted style="display:none;"></video>
+              <canvas id="face-canvas" width="640" height="420" style="width:100%;height:100%;object-fit:cover;"></canvas>
+
+              <!-- HUD Elements -->
+              <div class="hud-overlay">
+                <!-- Top Status Strip -->
+                <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.85);padding:8px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(6px);">
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="color:#38bdf8;font-family:monospace;font-size:12px;font-weight:700;" id="hud-bus-tag">BUS: SB-101 | DRIVER: MICHAEL VANCE</span>
+                  </div>
+                  <div id="hud-state-pill" class="status-pill active">
+                    <i class="fa-solid fa-circle" style="font-size:8px;"></i> <span id="hud-state-text">ACTIVE</span>
+                  </div>
+                </div>
+
+                <!-- Center Reticle Box -->
+                <div class="hud-reticle-box" id="reticle-box">
+                  <span style="font-family:monospace;font-size:11px;color:#10b981;background:rgba(0,0,0,0.75);padding:3px 8px;border-radius:4px;border:1px solid rgba(16,185,129,0.3);" id="reticle-label">
+                    <i class="fa-solid fa-face-smile"></i> FACE ATTENTIVE
+                  </span>
+                  <div style="display:flex;gap:6px;">
+                    <span style="font-family:monospace;font-size:11px;color:#38bdf8;background:rgba(0,0,0,0.75);padding:3px 8px;border-radius:4px;border:1px solid rgba(56,189,248,0.3);" id="reticle-ear">
+                      EAR: 0.32
+                    </span>
+                    <span style="font-family:monospace;font-size:11px;color:#a855f7;background:rgba(0,0,0,0.75);padding:3px 8px;border-radius:4px;border:1px solid rgba(168,85,247,0.3);" id="reticle-mar">
+                      MAR: 0.14
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Bottom Telemetry Card with Dual EAR & MAR Gauges -->
+                <div style="background:rgba(0,0,0,0.9);padding:14px 18px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(8px);">
+                  <!-- 1. Eye Aspect Ratio (EAR) -->
+                  <div style="margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;align-items:center;">
+                      <span style="color:#cbd5e1;font-weight:600;"><i class="fa-solid fa-eye" style="color:#38bdf8;"></i> Eye Aspect Ratio (EAR):</span>
+                      <b style="color:#10b981;font-family:monospace;font-size:12px;" id="hud-ear-val">0.32 (OPEN)</b>
+                    </div>
+                    <div style="background:#1e293b;height:7px;border-radius:4px;overflow:hidden;position:relative;">
+                      <div class="meter-bar-fill" id="ear-progress-fill" style="width:80%;background:#10b981;"></div>
+                      <div style="position:absolute;left:50%;top:0;bottom:0;width:2px;background:#ef4444;" title="Eye Threshold: 0.20"></div>
+                    </div>
+                  </div>
+
+                  <!-- 2. Mouth Aspect Ratio (MAR) -->
+                  <div style="margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px;align-items:center;">
+                      <span style="color:#cbd5e1;font-weight:600;"><i class="fa-solid fa-mouth" style="color:#a855f7;"></i> Mouth Aspect Ratio / Yawn (MAR):</span>
+                      <b style="color:#a855f7;font-family:monospace;font-size:12px;" id="hud-mar-val">0.14 (CLOSED)</b>
+                    </div>
+                    <div style="background:#1e293b;height:7px;border-radius:4px;overflow:hidden;position:relative;">
+                      <div class="meter-bar-fill" id="mar-progress-fill" style="width:25%;background:#a855f7;"></div>
+                      <div style="position:absolute;left:55%;top:0;bottom:0;width:2px;background:#f59e0b;" title="Yawn Threshold: 0.50"></div>
+                    </div>
+                  </div>
+
+                  <!-- Bottom telemetry summary -->
+                  <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;flex-wrap:wrap;gap:6px;">
+                    <span>Attentiveness: <b style="color:#10b981;" id="hud-attentive-score">96%</b></span>
+                    <span>Safety Escalation: <b style="color:#38bdf8;" id="hud-safety-agent-tag">NOMINAL</b></span>
+                    <span>Driver Swap Need: <b style="color:#10b981;" id="hud-swap-need-tag">NO (ATTENTIVE)</b></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Action Preset Buttons -->
+            <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;">
+              <button class="action-btn btn-primary" style="flex:1;font-size:12px;" onclick="toggleSimulationPreset('ACTIVE')">
+                <i class="fa-solid fa-circle-check"></i> Normal Active
+              </button>
+              <button class="action-btn" style="flex:1;font-size:12px;background:rgba(245,158,11,0.2);color:#fde68a;border:1px solid #f59e0b;" onclick="toggleSimulationPreset('SLIGHTLY_INACTIVE')">
+                <i class="fa-solid fa-moon"></i> Slight Inactive (Yawn)
+              </button>
+              <button class="action-btn btn-danger" style="flex:1;font-size:12px;" onclick="toggleSimulationPreset('FULLY_INACTIVE')">
+                <i class="fa-solid fa-skull-crossbones"></i> Full Inactive (Swap Needed)
+              </button>
+            </div>
+          </div>
+
+          <!-- Right: Fleet Driver Selection & State Roster -->
+          <div class="glass-panel" style="padding:20px;display:flex;flex-direction:column;">
+            <div class="section-header">
+              <div class="section-title">
+                <i class="fa-solid fa-users" style="color:#a855f7;"></i> Fleet Driver Roster &amp; Live Attentiveness
+              </div>
+              <span class="badge-tag badge-info">Fleet Roster</span>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin-bottom:14px;">
+              Select a bus below to link your live camera / simulation stream:
+            </p>
+
+            <div id="driver-cards-list" style="flex:1;overflow-y:auto;max-height:430px;">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Historical Recognition Inspection Audit Log -->
+        <div class="glass-panel">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fa-solid fa-clock-rotate-left" style="color:#38bdf8;"></i> Driver Attentiveness (EAR + MAR) Safety Event Audit Log
+            </div>
+            <button class="action-btn" onclick="loadAuditHistory()" style="padding:4px 10px;font-size:12px;">
+              <i class="fa-solid fa-rotate"></i> Refresh Log
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="custom-table" style="font-size:12px;">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Bus Number</th>
+                  <th>Driver Name</th>
+                  <th>Attentiveness State</th>
+                  <th>Severity</th>
+                  <th>Safety Message &amp; Trigger Details</th>
+                  <th>Hardware Actuation</th>
+                </tr>
+              </thead>
+              <tbody id="safety-events-tbody">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script>
+    // Global Studio State
+    let currentSelectedBus = 'SB-101';
+    let webcamStream = null;
+    let animFrameId = null;
+    let isWebcamActive = false;
+    let currentPreset = 'ACTIVE'; // 'ACTIVE', 'SLIGHTLY_INACTIVE', 'FULLY_INACTIVE'
+    let consecutiveClosedFrames = 0;
+    let consecutiveYawnFrames = 0;
+    let earHistory = new Array(60).fill(0.32);
+    let marHistory = new Array(60).fill(0.14);
+    let simulatedTick = 0;
+    let lastBackendSyncTime = 0;
+
+    // MediaPipe FaceMesh Instance
+    let faceMesh = null;
+    let isMediaPipeReady = false;
+    let latestLandmarks = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('bus')) {
+        currentSelectedBus = params.get('bus');
+      }
+
+      initMediaPipeFaceMesh();
+      loadDriversList();
+      loadAuditHistory();
+      startRenderingLoop();
+
+      setTimeout(() => {
+        if (!isWebcamActive) {
+          toggleWebcamFeed(true);
+        }
+      }, 500);
+    });
+
+    // -------------------------------------------------------------
+    // 1. Initialize MediaPipe FaceMesh
+    // -------------------------------------------------------------
+    function initMediaPipeFaceMesh() {
+      try {
+        if (typeof FaceMesh !== 'undefined') {
+          faceMesh = new FaceMesh({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+          });
+
+          faceMesh.setOptions({
+            maxNumFaces: 1,
+            refineLandmarks: true,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+          });
+
+          faceMesh.onResults(onFaceMeshResults);
+          isMediaPipeReady = true;
+          document.getElementById('ai-engine-badge').textContent = 'AI MODEL: MEDIAPIPE FACE MESH READY';
+        }
+      } catch (err) {
+        console.warn('[FaceMesh Init Warning]', err);
+      }
+    }
+
+    function onFaceMeshResults(results) {
+      if (results && results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+        latestLandmarks = results.multiFaceLandmarks[0];
+      } else {
+        latestLandmarks = null;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 2. Mathematical Euclidean Distance, EAR & MAR Calculation
+    // -------------------------------------------------------------
+    function getEuclideanDistance(p1, p2, width, height) {
+      const dx = (p1.x - p2.x) * width;
+      const dy = (p1.y - p2.y) * height;
+      return Math.hypot(dx, dy);
+    }
+
+    function computeLandmarkMetrics(landmarks, width, height) {
+      if (!landmarks || landmarks.length < 468) return null;
+
+      // --- 1. Left Eye (33, 160, 158, 133, 153, 144) ---
+      const leftH = getEuclideanDistance(landmarks[33], landmarks[133], width, height);
+      const leftV1 = getEuclideanDistance(landmarks[160], landmarks[144], width, height);
+      const leftV2 = getEuclideanDistance(landmarks[158], landmarks[153], width, height);
+      const leftEAR = leftH > 0.001 ? (leftV1 + leftV2) / (2.0 * leftH) : 0.32;
+
+      // --- 2. Right Eye (263, 385, 387, 362, 373, 380) ---
+      const rightH = getEuclideanDistance(landmarks[263], landmarks[362], width, height);
+      const rightV1 = getEuclideanDistance(landmarks[385], landmarks[380], width, height);
+      const rightV2 = getEuclideanDistance(landmarks[387], landmarks[373], width, height);
+      const rightEAR = rightH > 0.001 ? (rightV1 + rightV2) / (2.0 * rightH) : 0.32;
+
+      const avgEAR = (leftEAR + rightEAR) / 2.0;
+
+      // --- 3. Mouth & Lips (Inner Lips 13, 14; 82, 87; 312, 317; Corners 61, 291) ---
+      const mouthWidth = getEuclideanDistance(landmarks[61], landmarks[291], width, height);
+      const mouthV1 = getEuclideanDistance(landmarks[13], landmarks[14], width, height);
+      const mouthV2 = getEuclideanDistance(landmarks[82], landmarks[87], width, height);
+      const mouthV3 = getEuclideanDistance(landmarks[312], landmarks[317], width, height);
+      const avgMAR = mouthWidth > 0.001 ? (mouthV1 + mouthV2 + mouthV3) / (3.0 * mouthWidth) : 0.14;
+
+      return {
+        avgEAR: Math.max(0.08, Math.min(0.45, avgEAR)),
+        avgMAR: Math.max(0.05, Math.min(0.85, avgMAR))
+      };
+    }
+
+    // -------------------------------------------------------------
+    // 3. Main Real-Time Computer Vision & Rendering Engine
+    // -------------------------------------------------------------
+    function startRenderingLoop() {
+      const canvas = document.getElementById('face-canvas');
+      const ctx = canvas.getContext('2d');
+      const video = document.getElementById('webcam-video');
+
+      let isProcessingFrame = false;
+
+      async function render() {
+        simulatedTick++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let liveEAR = 0.32;
+        let liveMAR = 0.14;
+
+        if (isWebcamActive && video.readyState >= 2) {
+          if (isMediaPipeReady && faceMesh && !isProcessingFrame) {
+            isProcessingFrame = true;
+            faceMesh.send({ image: video })
+              .catch(e => console.warn('[FaceMesh Frame Error]', e))
+              .finally(() => { isProcessingFrame = false; });
+          }
+
+          // Mirrored Video Feed
+          ctx.save();
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          ctx.restore();
+
+          // Dark overlay depending on state
+          if (currentPreset === 'FULLY_INACTIVE') {
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.18)';
+          } else if (currentPreset === 'SLIGHTLY_INACTIVE') {
+            ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
+          } else {
+            ctx.fillStyle = 'rgba(9, 13, 22, 0.15)';
+          }
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Compute real-time EAR & MAR
+          if (latestLandmarks && latestLandmarks.length >= 468) {
+            const computed = computeLandmarkMetrics(latestLandmarks, canvas.width, canvas.height);
+            if (computed) {
+              liveEAR = computed.avgEAR;
+              liveMAR = computed.avgMAR;
+
+              // Override if user clicked manual simulation buttons
+              if (currentPreset === 'FULLY_INACTIVE') {
+                liveEAR = 0.12 + Math.sin(simulatedTick * 0.1) * 0.02;
+                liveMAR = 0.62 + Math.sin(simulatedTick * 0.08) * 0.04;
+              } else if (currentPreset === 'SLIGHTLY_INACTIVE') {
+                liveEAR = 0.18 + Math.sin(simulatedTick * 0.1) * 0.02;
+                liveMAR = 0.48 + Math.sin(simulatedTick * 0.08) * 0.03;
+              }
+            }
+            drawMediaPipeMesh(ctx, latestLandmarks, canvas.width, canvas.height, liveEAR, liveMAR);
+          } else {
+            // Simulated mesh with fallback
+            if (currentPreset === 'FULLY_INACTIVE') {
+              liveEAR = 0.12; liveMAR = 0.65;
+            } else if (currentPreset === 'SLIGHTLY_INACTIVE') {
+              liveEAR = 0.18; liveMAR = 0.48;
+            } else {
+              liveEAR = 0.32 + Math.sin(simulatedTick * 0.08) * 0.01;
+              liveMAR = 0.14 + Math.sin(simulatedTick * 0.05) * 0.02;
+            }
+            drawSyntheticMesh(ctx, canvas.width / 2, canvas.height / 2 - 10, liveEAR, liveMAR);
+          }
+
+          // Scanning Line
+          const scanY = (simulatedTick * 3.5) % canvas.height;
+          ctx.strokeStyle = (currentPreset === 'FULLY_INACTIVE') ? 'rgba(239, 68, 68, 0.7)' : ((currentPreset === 'SLIGHTLY_INACTIVE') ? 'rgba(245, 158, 11, 0.6)' : 'rgba(56, 189, 248, 0.45)');
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(0, scanY);
+          ctx.lineTo(canvas.width, scanY);
+          ctx.stroke();
+
+        } else {
+          // Simulation Neural Wireframe
+          const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+          grad.addColorStop(0, '#090d16');
+          grad.addColorStop(1, '#111827');
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Grid
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
+          ctx.lineWidth = 1;
+          for (let x = 40; x < canvas.width; x += 40) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+          }
+          for (let y = 40; y < canvas.height; y += 40) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+          }
+
+          if (currentPreset === 'FULLY_INACTIVE') {
+            liveEAR = 0.12; liveMAR = 0.65;
+          } else if (currentPreset === 'SLIGHTLY_INACTIVE') {
+            liveEAR = 0.18; liveMAR = 0.48;
+          } else {
+            liveEAR = 0.32 + Math.sin(simulatedTick * 0.08) * 0.015;
+            liveMAR = 0.14 + Math.sin(simulatedTick * 0.05) * 0.01;
+          }
+
+          const cx = canvas.width / 2;
+          const cy = canvas.height / 2 - 10;
+          ctx.fillStyle = 'rgba(30, 41, 59, 0.7)';
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, 85, 115, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          drawSyntheticMesh(ctx, cx, cy, liveEAR, liveMAR);
+        }
+
+        // Automatic State Processing
+        evaluateAttentivenessState(liveEAR, liveMAR);
+
+        // Update Dual Signal Waveforms
+        earHistory.push(liveEAR);
+        earHistory.shift();
+        marHistory.push(liveMAR);
+        marHistory.shift();
+        drawDualWaveforms(ctx, earHistory, marHistory, canvas.width, canvas.height);
+
+        // Update DOM Metrics
+        updateLiveDOMMetrics(liveEAR, liveMAR);
+
+        animFrameId = requestAnimationFrame(render);
+      }
+
+      animFrameId = requestAnimationFrame(render);
+    }
+
+    // -------------------------------------------------------------
+    // 4. Multi-State Drowsiness & Inactivity State Machine
+    // -------------------------------------------------------------
+    function evaluateAttentivenessState(ear, mar) {
+      const isEyesClosed = (ear < 0.20);
+      const isMouthOpen = (mar >= 0.50);
+
+      if (isEyesClosed && isMouthOpen) {
+        // FULLY INACTIVE (Critical: Eyes Closed + Yawning Wide)
+        consecutiveClosedFrames++;
+        consecutiveYawnFrames++;
+        if (consecutiveClosedFrames >= 15 && currentPreset !== 'FULLY_INACTIVE') {
+          triggerStateChange('FULLY_INACTIVE', ear, mar);
+        }
+      } else if (isEyesClosed || isMouthOpen || (mar >= 0.45) || (ear < 0.22)) {
+        // SLIGHTLY INACTIVE (Warning: Only Eyes Closed OR Only Yawning)
+        consecutiveClosedFrames = isEyesClosed ? consecutiveClosedFrames + 1 : 0;
+        consecutiveYawnFrames = isMouthOpen ? consecutiveYawnFrames + 1 : 0;
+        if ((consecutiveClosedFrames >= 15 || consecutiveYawnFrames >= 15) && currentPreset !== 'SLIGHTLY_INACTIVE' && currentPreset !== 'FULLY_INACTIVE') {
+          triggerStateChange('SLIGHTLY_INACTIVE', ear, mar);
+        }
+      } else {
+        // ACTIVE (Nominal: Eyes Open & Mouth Closed)
+        consecutiveClosedFrames = 0;
+        consecutiveYawnFrames = 0;
+        if (currentPreset !== 'ACTIVE') {
+          triggerStateChange('ACTIVE', ear, mar);
+        }
+      }
+    }
+
+    function triggerStateChange(newState, ear, mar) {
+      currentPreset = newState;
+      console.log(`[Attentiveness State] ${newState} | EAR: ${ear.toFixed(2)}, MAR: ${mar.toFixed(2)}`);
+
+      const critBanner = document.getElementById('drowsy-critical-banner');
+      const warnBanner = document.getElementById('drowsy-warning-banner');
+
+      if (newState === 'FULLY_INACTIVE') {
+        playEmergencyAlarm();
+        if (critBanner) critBanner.style.display = 'flex';
+        if (warnBanner) warnBanner.style.display = 'none';
+        showToast(`🚨 CRITICAL: Driver on Bus ${currentSelectedBus} is FULLY INACTIVE (Eyes Closed + Yawning Wide)! Immediate driver swap needed!`, 'danger');
+      } else if (newState === 'SLIGHTLY_INACTIVE') {
+        playWarningBeep();
+        if (critBanner) critBanner.style.display = 'none';
+        if (warnBanner) warnBanner.style.display = 'flex';
+        showToast(`⚠️ WARNING: Driver on Bus ${currentSelectedBus} is slightly inactive / drowsiness & yawning detected.`, 'warning');
+      } else {
+        if (critBanner) critBanner.style.display = 'none';
+        if (warnBanner) warnBanner.style.display = 'none';
+        showToast(`Driver on Bus ${currentSelectedBus} is ACTIVE & attentive.`, 'success');
+      }
+
+      syncLiveDrowsinessState(newState, ear, mar);
+    }
+
+    // -------------------------------------------------------------
+    // 5. Draw MediaPipe Real Facial Landmark Mesh
+    // -------------------------------------------------------------
+    function drawMediaPipeMesh(ctx, landmarks, w, h, ear, mar) {
+      const isCritical = (currentPreset === 'FULLY_INACTIVE');
+      const isWarning = (currentPreset === 'SLIGHTLY_INACTIVE');
+      const color = isCritical ? '#ef4444' : (isWarning ? '#f59e0b' : '#10b981');
+      const eyeColor = isCritical ? '#ef4444' : (isWarning ? '#f59e0b' : '#38bdf8');
+      const lipColor = isCritical ? '#ef4444' : (isWarning ? '#f59e0b' : '#a855f7');
+
+      function pt(idx) {
+        const p = landmarks[idx];
+        return { x: (1.0 - p.x) * w, y: p.y * h };
+      }
+
+      // 1. Left Eye
+      ctx.strokeStyle = eyeColor;
+      ctx.lineWidth = isCritical ? 2.5 : 1.8;
+      ctx.beginPath();
+      [33, 160, 158, 133, 153, 144, 33].forEach((idx, i) => {
+        const p = pt(idx);
+        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      // 2. Right Eye
+      ctx.beginPath();
+      [362, 385, 387, 263, 373, 380, 362].forEach((idx, i) => {
+        const p = pt(idx);
+        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      // 3. Lips & Yawn Mouth Mesh
+      ctx.strokeStyle = lipColor;
+      ctx.lineWidth = mar >= 0.45 ? 3 : 1.8;
+      ctx.beginPath();
+      [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95, 61].forEach((idx, i) => {
+        const p = pt(idx);
+        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      // 4. Face Oval
+      ctx.strokeStyle = `${color}55`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109, 10].forEach((idx, i) => {
+        const p = pt(idx);
+        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      // Center Reticle positioning
+      const nose = pt(1);
+      const topHead = pt(10);
+      const chin = pt(152);
+      const leftEar = pt(234);
+      const rightEar = pt(454);
+      const reticle = document.getElementById('reticle-box');
+      if (reticle && nose) {
+        const boxW = Math.max(120, Math.abs(leftEar.x - rightEar.x) * 1.3);
+        const boxH = Math.max(150, Math.abs(chin.y - topHead.y) * 1.2);
+        const boxX = Math.max(10, Math.min(w - boxW - 10, nose.x - boxW / 2));
+        const boxY = Math.max(10, Math.min(h - boxH - 10, topHead.y - 15));
+        reticle.style.left = `${(boxX / w) * 100}%`;
+        reticle.style.top = `${(boxY / h) * 100}%`;
+        reticle.style.width = `${(boxW / w) * 100}%`;
+        reticle.style.height = `${(boxH / h) * 100}%`;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 6. Draw Synthetic Face Mesh (Simulation)
+    // -------------------------------------------------------------
+    function drawSyntheticMesh(ctx, cx, cy, ear, mar) {
+      const isCritical = (currentPreset === 'FULLY_INACTIVE');
+      const isWarning = (currentPreset === 'SLIGHTLY_INACTIVE');
+      const eyeH = isCritical ? 2 : Math.max(2, ear * 36);
+      const mouthH = Math.max(4, mar * 45);
+      const color = isCritical ? '#ef4444' : (isWarning ? '#f59e0b' : '#38bdf8');
+
+      // Eyes
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(cx - 32, cy - 20, 15, eyeH, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + 32, cy - 20, 15, eyeH, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Mouth / Yawn opening
+      ctx.strokeStyle = isCritical ? '#ef4444' : (mar >= 0.45 ? '#f59e0b' : '#a855f7');
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy + 38, 22, mouthH, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // -------------------------------------------------------------
+    // 7. Render Real-Time Dual Signal Waveforms (EAR & MAR)
+    // -------------------------------------------------------------
+    function drawDualWaveforms(ctx, earHist, marHist, w, h) {
+      const graphW = 210;
+      const graphH = 50;
+      const startX = w - graphW - 16;
+      const startY = h - graphH - 16;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      ctx.fillRect(startX, startY, graphW, graphH);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.strokeRect(startX, startY, graphW, graphH);
+
+      // EAR Signal (Cyan / Red)
+      ctx.strokeStyle = (earHist[earHist.length - 1] < 0.20) ? '#ef4444' : '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const step = graphW / (earHist.length - 1);
+      earHist.forEach((val, idx) => {
+        const y = startY + graphH - Math.max(3, Math.min(graphH - 3, (val / 0.45) * graphH));
+        if (idx === 0) ctx.moveTo(startX, y); else ctx.lineTo(startX + (idx * step), y);
+      });
+      ctx.stroke();
+
+      // MAR Signal (Purple / Amber)
+      ctx.strokeStyle = (marHist[marHist.length - 1] >= 0.50) ? '#f59e0b' : '#a855f7';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      marHist.forEach((val, idx) => {
+        const y = startY + graphH - Math.max(3, Math.min(graphH - 3, (val / 0.85) * graphH));
+        if (idx === 0) ctx.moveTo(startX, y); else ctx.lineTo(startX + (idx * step), y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '9px monospace';
+      ctx.fillText('EAR (EYE)', startX + 6, startY + 12);
+      ctx.fillStyle = '#a855f7';
+      ctx.fillText('MAR (MOUTH)', startX + 70, startY + 12);
+    }
+
+    // -------------------------------------------------------------
+    // 8. Update Live DOM Metrics
+    // -------------------------------------------------------------
+    function updateLiveDOMMetrics(ear, mar) {
+      const isCritical = (currentPreset === 'FULLY_INACTIVE');
+      const isWarning = (currentPreset === 'SLIGHTLY_INACTIVE');
+
+      const earValElem = document.getElementById('hud-ear-val');
+      const marValElem = document.getElementById('hud-mar-val');
+      const earFill = document.getElementById('ear-progress-fill');
+      const marFill = document.getElementById('mar-progress-fill');
+      const reticle = document.getElementById('reticle-box');
+      const reticleLabel = document.getElementById('reticle-label');
+      const reticleEar = document.getElementById('reticle-ear');
+      const reticleMar = document.getElementById('reticle-mar');
+      const statePill = document.getElementById('hud-state-pill');
+      const stateText = document.getElementById('hud-state-text');
+      const attentiveScore = document.getElementById('hud-attentive-score');
+      const safetyTag = document.getElementById('hud-safety-agent-tag');
+      const swapNeedTag = document.getElementById('hud-swap-need-tag');
+
+      if (earValElem) {
+        earValElem.textContent = `${ear.toFixed(2)} (${ear < 0.20 ? 'EYES CLOSED' : 'EYES OPEN'})`;
+        earValElem.style.color = ear < 0.20 ? '#ef4444' : '#10b981';
+      }
+      if (marValElem) {
+        marValElem.textContent = `${mar.toFixed(2)} (${mar >= 0.50 ? 'YAWNING WIDE' : (mar >= 0.45 ? 'SLIGHT YAWN' : 'CLOSED')})`;
+        marValElem.style.color = mar >= 0.50 ? '#ef4444' : (mar >= 0.45 ? '#f59e0b' : '#a855f7');
+      }
+
+      if (earFill) {
+        earFill.style.width = `${Math.min(100, Math.max(5, (ear / 0.40) * 100))}%`;
+        earFill.style.background = ear < 0.20 ? '#ef4444' : '#10b981';
+      }
+      if (marFill) {
+        marFill.style.width = `${Math.min(100, Math.max(5, (mar / 0.80) * 100))}%`;
+        marFill.style.background = mar >= 0.50 ? '#ef4444' : (mar >= 0.45 ? '#f59e0b' : '#a855f7');
+      }
+
+      if (reticleEar) reticleEar.textContent = `EAR: ${ear.toFixed(2)}`;
+      if (reticleMar) reticleMar.textContent = `MAR: ${mar.toFixed(2)}`;
+
+      if (reticle && reticleLabel) {
+        reticle.className = `hud-reticle-box ${isCritical ? 'critical' : (isWarning ? 'warning' : '')}`;
+        if (isCritical) {
+          reticleLabel.innerHTML = '<i class="fa-solid fa-user-xmark"></i> FULLY INACTIVE - SWAP NEEDED!';
+          reticleLabel.style.color = '#ef4444';
+        } else if (isWarning) {
+          reticleLabel.innerHTML = '<i class="fa-solid fa-moon"></i> SLIGHTLY INACTIVE (YAWNING)';
+          reticleLabel.style.color = '#f59e0b';
+        } else {
+          reticleLabel.innerHTML = '<i class="fa-solid fa-face-smile"></i> DRIVER ATTENTIVE';
+          reticleLabel.style.color = '#10b981';
+        }
+      }
+
+      if (statePill && stateText) {
+        statePill.className = `status-pill ${isCritical ? 'critical' : (isWarning ? 'warning' : 'active')}`;
+        stateText.textContent = isCritical ? 'FULLY INACTIVE (SWAP NEEDED)' : (isWarning ? 'SLIGHTLY INACTIVE' : 'ACTIVE');
+      }
+
+      if (attentiveScore) {
+        attentiveScore.textContent = isCritical ? '15%' : (isWarning ? '50%' : '96%');
+        attentiveScore.style.color = isCritical ? '#ef4444' : (isWarning ? '#f59e0b' : '#10b981');
+      }
+
+      if (safetyTag) {
+        safetyTag.textContent = isCritical ? 'CRITICAL ALARM & SWAP RECOMMENDED' : (isWarning ? 'CAUTION WARNING DISPATCHED' : 'NOMINAL (STANDBY)');
+        safetyTag.style.color = isCritical ? '#ef4444' : (isWarning ? '#f59e0b' : '#38bdf8');
+      }
+
+      if (swapNeedTag) {
+        swapNeedTag.textContent = isCritical ? 'YES - IMMEDIATE SWAP REQUIRED!' : (isWarning ? 'NO (CAUTION MONITOR)' : 'NO (ATTENTIVE)');
+        swapNeedTag.style.color = isCritical ? '#ef4444' : (isWarning ? '#f59e0b' : '#10b981');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 9. Synchronize Drowsiness State with Flask Backend
+    // -------------------------------------------------------------
+    async function syncLiveDrowsinessState(state, ear, mar) {
+      const now = Date.now();
+      if (now - lastBackendSyncTime < 2000) return;
+      lastBackendSyncTime = now;
+
+      try {
+        const res = await apiRequest('/drivers/inspect-face', 'POST', {
+          bus_number: currentSelectedBus,
+          state: state,
+          ear: ear,
+          mar: mar,
+          confidence: 0.96
+        });
+
+        if (res && res.success) {
+          loadDriversList();
+          loadAuditHistory();
+        }
+      } catch (err) {
+        console.warn('[Backend Sync Error]', err);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 10. Fleet Driver Roster & UI Actions
+    // -------------------------------------------------------------
+    async function loadDriversList() {
+      const res = await apiRequest('/drivers/attentiveness-status');
+      const container = document.getElementById('driver-cards-list');
+      if (res && res.drivers && container) {
+        container.innerHTML = res.drivers.map(d => {
+          const isSel = (d.bus_number === currentSelectedBus);
+          const isCritical = (d.attentiveness_state === 'FULLY_INACTIVE');
+          const isWarning = (d.attentiveness_state === 'SLIGHTLY_INACTIVE' || d.drowsiness_detected);
+          const statusBadge = isCritical ? 
+            `<span class="badge-tag badge-danger" style="font-size:10px;"><i class="fa-solid fa-skull-crossbones"></i> FULLY INACTIVE</span>` : 
+            (isWarning ? 
+              `<span class="badge-tag badge-warning" style="font-size:10px;"><i class="fa-solid fa-moon"></i> SLIGHTLY INACTIVE</span>` : 
+              `<span class="badge-tag badge-success" style="font-size:10px;"><i class="fa-solid fa-circle-check"></i> ACTIVE</span>`);
+
+          return `
+            <div class="bus-driver-card ${isSel ? 'selected' : ''}" onclick="selectBusDriver('${d.bus_number}')">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <b style="color:#fff;font-size:14px;">${d.bus_number} &bull; ${d.driver_name}</b>
+                ${statusBadge}
+              </div>
+              <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">
+                <i class="fa-solid fa-route" style="color:#38bdf8;"></i> ${d.route_name}
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:11px;color:#cbd5e1;">
+                <span>EAR: <b style="color:#38bdf8;">${(d.ear_score || 0.32).toFixed(2)}</b></span>
+                <span>MAR: <b style="color:#a855f7;">${(d.mar_score || 0.14).toFixed(2)}</b></span>
+                <span>Swap Needed: <b style="color:${isCritical ? '#ef4444' : '#10b981'};">${isCritical ? 'YES' : 'NO'}</b></span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        const selDriver = res.drivers.find(d => d.bus_number === currentSelectedBus) || res.drivers[0];
+        if (selDriver) {
+          document.getElementById('hud-bus-tag').textContent = `BUS: ${selDriver.bus_number} | DRIVER: ${selDriver.driver_name.toUpperCase()}`;
+        }
+      }
+    }
+
+    function selectBusDriver(busNumber) {
+      currentSelectedBus = busNumber;
+      loadDriversList();
+      showToast(`Linked face studio to Bus ${busNumber}.`, 'info');
+    }
+
+    function toggleSimulationPreset(preset) {
+      const ear = (preset === 'FULLY_INACTIVE' ? 0.12 : (preset === 'SLIGHTLY_INACTIVE' ? 0.18 : 0.32));
+      const mar = (preset === 'FULLY_INACTIVE' ? 0.62 : (preset === 'SLIGHTLY_INACTIVE' ? 0.48 : 0.14));
+      triggerStateChange(preset, ear, mar);
+    }
+
+    function forceResolveAlert() {
+      toggleSimulationPreset('ACTIVE');
+      showToast('Alert cleared and driver marked ACTIVE.', 'success');
+    }
+
+    function playWarningBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(580, ctx.currentTime);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } catch (e) {}
+    }
+
+    async function loadAuditHistory() {
+      const res = await apiRequest('/alerts?limit=15');
+      const tbody = document.getElementById('safety-events-tbody');
+      if (res && res.alerts && tbody) {
+        tbody.innerHTML = res.alerts.map(a => `
+          <tr>
+            <td><code>${new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</code></td>
+            <td><b>${a.bus_number}</b></td>
+            <td>Driver Staff</td>
+            <td><span class="badge-tag badge-${a.severity === 'CRITICAL' ? 'danger' : (a.severity === 'WARNING' ? 'warning' : 'info')}">${a.alert_type}</span></td>
+            <td><b>${a.severity}</b></td>
+            <td style="font-size:11px;">${a.message}</td>
+            <td><code style="font-size:10px;">${a.bus_number === 'SB-101' ? 'LED:RED;BUZZER:ON' : 'DASHBOARD_ALERT'}</code></td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 11. Webcam Access Toggle
+    // -------------------------------------------------------------
+    async function toggleWebcamFeed(silent = false) {
+      const video = document.getElementById('webcam-video');
+      const topBtnText = document.getElementById('top-webcam-btn-text');
+      const mainBtnText = document.getElementById('main-webcam-btn-text');
+      const hudBadge = document.getElementById('ai-engine-badge');
+
+      if (!isWebcamActive) {
+        try {
+          webcamStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: { ideal: 640 }, height: { ideal: 420 }, facingMode: 'user' } 
+          });
+          video.srcObject = webcamStream;
+          await video.play();
+          isWebcamActive = true;
+          if (topBtnText) topBtnText.textContent = 'Switch to Simulation';
+          if (mainBtnText) mainBtnText.textContent = 'Stop Camera';
+          if (hudBadge) {
+            hudBadge.textContent = 'LIVE WEBCAM: ACTIVE (EAR + MAR AUTO)';
+            hudBadge.className = 'badge-tag badge-info';
+          }
+          if (!silent) {
+            showToast('✅ Live Camera connected! Open your mouth wide (yawn) or close eyes to test inactivity states!', 'success');
+          }
+        } catch (e) {
+          if (!silent) {
+            showToast('Camera access unavailable. Running in high-fidelity AI facial simulation mode.', 'info');
+          }
+        }
+      } else {
+        if (webcamStream) {
+          webcamStream.getTracks().forEach(t => t.stop());
+          webcamStream = null;
+        }
+        isWebcamActive = false;
+        if (topBtnText) topBtnText.textContent = 'Enable Live Camera';
+        if (mainBtnText) mainBtnText.textContent = 'Start Live Camera';
+        if (hudBadge) {
+          hudBadge.textContent = 'AI MODEL: READY (SIMULATOR)';
+          hudBadge.className = 'badge-tag badge-success';
+        }
+        if (!silent) {
+          showToast('Switched to Studio Simulation mode.', 'info');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

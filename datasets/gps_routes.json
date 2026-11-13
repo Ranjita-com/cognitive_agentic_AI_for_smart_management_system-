@@ -1,0 +1,80 @@
+{
+  "routes": [
+    {
+      "route_number": "101",
+      "name": "Green Line Express",
+      "origin": "Hospital Stop",
+      "destination": "Bus Terminal",
+      "distance_km": 6.2,
+      "estimated_duration_mins": 15,
+      "fare": 30.0,
+      "color": "#10b981",
+      "polyline": [
+        [12.9716, 77.5946],
+        [12.9789, 77.6022],
+        [12.9819, 77.6052],
+        [12.9870, 77.6105],
+        [12.9922, 77.6159],
+        [12.9966, 77.6205],
+        [13.0010, 77.6250]
+      ],
+      "stops": [
+        {"code": "ST-101", "name": "Hospital Stop", "lat": 12.9716, "lng": 77.5946, "rfid": "RFID_STOP_101", "sequence": 1},
+        {"code": "ST-102", "name": "School Zone", "lat": 12.9819, "lng": 77.6052, "rfid": "RFID_STOP_102", "sequence": 2},
+        {"code": "ST-103", "name": "Market Area", "lat": 12.9922, "lng": 77.6159, "rfid": "RFID_STOP_103", "sequence": 3},
+        {"code": "ST-104", "name": "Bus Terminal", "lat": 13.0010, "lng": 77.6250, "rfid": "RFID_STOP_104", "sequence": 4}
+      ]
+    },
+    {
+      "route_number": "202",
+      "name": "Blue Airport Direct",
+      "origin": "Airport Terminal",
+      "destination": "Downtown Financial District",
+      "distance_km": 22.8,
+      "estimated_duration_mins": 45,
+      "fare": 65.0,
+      "color": "#3b82f6",
+      "polyline": [
+        [13.0450, 77.6500],
+        [13.0360, 77.6440],
+        [13.0280, 77.6380],
+        [13.0200, 77.6310],
+        [13.0120, 77.6250],
+        [12.9950, 77.6080],
+        [12.9780, 77.5900]
+      ],
+      "stops": [
+        {"code": "ST-201", "name": "Airport Terminal", "lat": 13.0450, "lng": 77.6500, "rfid": "RFID_STOP_201", "sequence": 1},
+        {"code": "ST-202", "name": "Aerospace Tech Park", "lat": 13.0280, "lng": 77.6380, "rfid": "RFID_STOP_202", "sequence": 2},
+        {"code": "ST-203", "name": "Highway Interchange", "lat": 13.0120, "lng": 77.6250, "rfid": "RFID_STOP_203", "sequence": 3},
+        {"code": "ST-204", "name": "Downtown Financial District", "lat": 12.9780, "lng": 77.5900, "rfid": "RFID_STOP_204", "sequence": 4}
+      ]
+    },
+    {
+      "route_number": "303",
+      "name": "Red City Circular",
+      "origin": "University Campus",
+      "destination": "South Commercial Mall",
+      "distance_km": 9.6,
+      "estimated_duration_mins": 24,
+      "fare": 20.0,
+      "color": "#ef4444",
+      "polyline": [
+        [12.9600, 77.5800],
+        [12.9625, 77.5840],
+        [12.9650, 77.5880],
+        [12.9690, 77.5865],
+        [12.9730, 77.5850],
+        [12.9640, 77.5890],
+        [12.9550, 77.5920],
+        [12.9600, 77.5800]
+      ],
+      "stops": [
+        {"code": "ST-301", "name": "University Campus", "lat": 12.9600, "lng": 77.5800, "rfid": "RFID_STOP_301", "sequence": 1},
+        {"code": "ST-302", "name": "Medical College", "lat": 12.9650, "lng": 77.5880, "rfid": "RFID_STOP_302", "sequence": 2},
+        {"code": "ST-303", "name": "Civic Arts Center", "lat": 12.9730, "lng": 77.5850, "rfid": "RFID_STOP_303", "sequence": 3},
+        {"code": "ST-304", "name": "South Commercial Mall", "lat": 12.9550, "lng": 77.5920, "rfid": "RFID_STOP_304", "sequence": 4}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fleet Optimization & Reports | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/dashboard.css">
+  <link rel="stylesheet" href="../assets/css/tables.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
+</head>
+<body>
+  <div class="admin-wrapper">
+    <aside class="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo"><i class="fa-solid fa-bus-simple"></i></div>
+        <div><div class="brand-name">SmartBus <span class="brand-badge">PRO</span></div></div>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="menu-category">Main Fleet</li>
+        <li class="menu-item"><a href="dashboard.html"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+        <li class="menu-item"><a href="map.html"><i class="fa-solid fa-map-location-dot"></i> Live Fleet Map <span class="badge-live">LIVE</span></a></li>
+        <li class="menu-item"><a href="buses.html"><i class="fa-solid fa-bus"></i> Bus Management</a></li>
+        <li class="menu-item"><a href="drivers.html"><i class="fa-solid fa-id-card"></i> Drivers Roster</a></li>
+        <li class="menu-item"><a href="routes.html"><i class="fa-solid fa-route"></i> Routes & Stops</a></li>
+
+        <li class="menu-category">Intelligent Agents</li>
+        <li class="menu-item"><a href="safety.html"><i class="fa-solid fa-shield-halved"></i> Safety & SOS Monitor</a></li>
+        <li class="menu-item"><a href="driver-recognition.html"><i class="fa-solid fa-eye"></i> Driver Face Studio</a></li>
+        <li class="menu-item"><a href="maintenance.html"><i class="fa-solid fa-wrench"></i> Predictive Health (ML)</a></li>
+        <li class="menu-item active"><a href="reports.html"><i class="fa-solid fa-chart-pie"></i> Fleet Optimization</a></li>
+
+        <li class="menu-category">System</li>
+        <li class="menu-item"><a href="notifications.html"><i class="fa-solid fa-bell"></i> Alerts Hub</a></li>
+        <li class="menu-item"><a href="settings.html"><i class="fa-solid fa-sliders"></i> Simulator & Config</a></li>
+        <li class="menu-item"><a href="profile.html"><i class="fa-solid fa-user-gear"></i> Admin Profile</a></li>
+      </ul>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-navbar">
+        <div class="nav-left">
+          <button class="mobile-toggle"><i class="fa-solid fa-bars"></i></button>
+          <div>
+            <h1 class="page-title">Fleet Optimization & Reports</h1>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px;">
+              Intelligent Fleet Agent Dispatch • Autonomous Standby Bus Reallocation • Volume Analytics
+            </div>
+          </div>
+        </div>
+        <div class="nav-right">
+          <button class="action-btn" onclick="loadFleetOptimizationData()"><i class="fa-solid fa-rotate"></i> Refresh Recommendations</button>
+          <button class="action-btn btn-primary" onclick="exportReportCsv()"><i class="fa-solid fa-download"></i> Export Analytics CSV</button>
+        </div>
+      </header>
+
+      <div class="admin-content fade-in">
+        <!-- Fleet Optimization Agent Dispatch & Reallocation Panel -->
+        <div class="glass-panel" style="margin-bottom:24px;">
+          <div class="section-header">
+            <div class="section-title">
+              <i class="fa-solid fa-brain" style="color:#a855f7;"></i> Fleet Agent Dispatch & Allocation Recommendations
+            </div>
+            <span class="badge-tag badge-purple">AI Optimization Agent</span>
+          </div>
+          <p style="font-size:12px;color:#94a3b8;margin-bottom:14px;">
+            The Fleet Optimization Agent continuously evaluates vehicle health, passenger demand, and depot standby units. When a bus requires urgent maintenance, it automatically pairs it with a healthy standby replacement for admin approval:
+          </p>
+
+          <div id="reports-recommendations-container">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Passenger Flow Chart -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-chart-area" style="color:#38bdf8;"></i> Daily Passenger Volume Flow</div>
+            </div>
+            <div class="section-body" style="height:280px;">
+              <canvas id="passenger-hourly-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- Punctuality Breakdown -->
+          <div class="glass-panel">
+            <div class="section-header">
+              <div class="section-title"><i class="fa-solid fa-clock-rotate-left" style="color:#10b981;"></i> Schedule Adherence & Punctuality</div>
+            </div>
+            <div class="section-body" style="height:280px;">
+              <canvas id="punctuality-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passenger Feedbacks Table -->
+        <div class="glass-panel" style="margin-top:24px;">
+          <div class="section-header">
+            <div class="section-title"><i class="fa-solid fa-comments" style="color:#a855f7;"></i> Passenger Ratings & Community Feedback</div>
+          </div>
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Passenger</th>
+                  <th>Category</th>
+                  <th>Rating</th>
+                  <th>Comments</th>
+                  <th>Date & Time</th>
+                </tr>
+              </thead>
+              <tbody id="feedback-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/sidebar.js"></script>
+  <script src="../assets/js/charts.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initPassengerHourlyChart('passenger-hourly-chart');
+      initPunctualityChart('punctuality-chart');
+      loadFeedbacks();
+      loadFleetOptimizationData();
+    });
+
+    async function loadFleetOptimizationData() {
+      const res = await apiRequest('/fleet/recommendations');
+      const container = document.getElementById('reports-recommendations-container');
+      if (!container) return;
+
+      if (!res || !res.recommendations || res.recommendations.length === 0) {
+        container.innerHTML = `<p style="color:#64748b;font-size:13px;padding:12px;">All fleet routes operating at optimal efficiency. No dispatch interventions required.</p>`;
+        return;
+      }
+
+      container.innerHTML = res.recommendations.map(r => {
+        if (r.can_reallocate && r.suggested_replacement && r.degraded_bus) {
+          const deg = r.degraded_bus;
+          const rep = r.suggested_replacement;
+          const isReal101 = (deg.bus_number === 'SB-101');
+
+          return `
+            <div class="ai-swap-card">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="badge-tag badge-purple" style="font-size:11px;"><i class="fa-solid fa-robot"></i> AI FLEET AGENT PROPOSAL</span>
+                  <span class="badge-tag badge-danger" style="font-size:10px;">ACTION REQUIRED</span>
+                </div>
+                <span style="font-size:11px;color:#94a3b8;font-family:monospace;">Route: ${deg.route_name}</span>
+              </div>
+
+              <h5 style="color:#fff;font-size:14px;margin-bottom:4px;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i> Replace ${deg.bus_number} (${deg.health_score.toFixed(0)}% Health) with Standby ${rep.bus_number} (${rep.health_score.toFixed(0)}% Health)
+              </h5>
+              <p style="font-size:12px;color:#cbd5e1;margin-bottom:12px;">
+                ${deg.bus_number} exhibits critical health degradation. The Fleet Optimization Agent recommends swapping with healthy standby ${rep.bus_number} on ${deg.route_name}.
+              </p>
+
+              <!-- Side-by-Side Bus Comparison -->
+              <div class="ai-swap-grid">
+                <!-- Left: Degraded Bus -->
+                <div class="ai-swap-box degraded">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <b style="color:#ef4444;font-size:13px;"><i class="fa-solid fa-bus"></i> ${deg.bus_number}</b>
+                    <span class="badge-tag badge-danger" style="font-size:9px;">NEEDS REPAIR</span>
+                  </div>
+                  <div style="font-size:11px;color:#cbd5e1;">Health Score: <b style="color:#ef4444;">${deg.health_score.toFixed(0)}%</b></div>
+                  <div style="font-size:11px;color:#94a3b8;">Active on: ${deg.route_name}</div>
+                  <div style="font-size:10px;color:#94a3b8;margin-top:2px;">Hardware: ${isReal101 ? 'Physical ESP32-S3' : 'Simulated Unit'}</div>
+                </div>
+
+                <!-- Middle: Arrow -->
+                <div class="ai-swap-arrow">
+                  <i class="fa-solid fa-right-left"></i>
+                  <span style="font-size:9px;color:#a855f7;font-weight:700;margin-top:2px;">SWAP</span>
+                </div>
+
+                <!-- Right: Recommended Standby Replacement -->
+                <div class="ai-swap-box replacement">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <b style="color:#10b981;font-size:13px;"><i class="fa-solid fa-bus"></i> ${rep.bus_number}</b>
+                    <span class="badge-tag badge-success" style="font-size:9px;">PRISTINE STANDBY</span>
+                  </div>
+                  <div style="font-size:11px;color:#cbd5e1;">Health Score: <b style="color:#10b981;">${rep.health_score.toFixed(0)}%</b></div>
+                  <div style="font-size:11px;color:#94a3b8;">Status: Ready in Depot</div>
+                  <div style="font-size:10px;color:#38bdf8;margin-top:2px;">Capacity: ${rep.capacity} Seats</div>
+                </div>
+              </div>
+
+              <!-- Bottom Approval Question & Execution Actions -->
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.08);">
+                <div style="font-size:12px;color:#e2e8f0;">
+                  <b>Approve Agent Swap:</b> Replace ${deg.bus_number} with ${rep.bus_number}?
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <button class="btn-ai-approve" onclick="executeReportBusSwap(${deg.bus_id}, ${rep.bus_id}, '${deg.bus_number}', '${rep.bus_number}', '${deg.route_name}')">
+                    <i class="fa-solid fa-bolt"></i> Approve & Execute Bus Swap
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="glass-panel" style="margin-bottom:12px;padding:14px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+              <span class="badge-tag badge-purple">${r.category}</span>
+              <span style="font-size:11px;color:#94a3b8;">Priority: ${r.priority}</span>
+            </div>
+            <h5 style="color:#fff;font-size:13px;margin-bottom:4px;">${r.title}</h5>
+            <p style="font-size:12px;color:#cbd5e1;margin-bottom:8px;">${r.message}</p>
+            <button class="action-btn btn-primary" style="padding:4px 10px;font-size:11px;">${r.action || r.recommended_action}</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function executeReportBusSwap(degradedBusId, replacementBusId, degradedBusNumber, replacementBusNumber, routeName) {
+      const confirmed = confirm(
+        `🤖 AI FLEET AGENT DISPATCH APPROVAL:\n\n` +
+        `Do you approve automated replacement of Bus ${degradedBusNumber} with Standby Bus ${replacementBusNumber} on ${routeName}?\n\n` +
+        `• ${replacementBusNumber} will be activated and assigned to ${routeName}\n` +
+        `• ${degradedBusNumber} will be transferred to depot workshop for urgent maintenance\n\n` +
+        `Click OK to execute automated agent swap.`
+      );
+
+      if (!confirmed) return;
+
+      const res = await apiRequest('/fleet/approve-reallocation', 'POST', {
+        degraded_bus_id: degradedBusId,
+        replacement_bus_id: replacementBusId,
+        reason: `Admin Approved Agent Swap (${degradedBusNumber} -> ${replacementBusNumber})`
+      });
+
+      if (res && res.success) {
+        showToast(`🎉 [AI AGENT EXECUTION COMPLETE] ${routeName} successfully transferred from ${degradedBusNumber} to ${replacementBusNumber}! ${degradedBusNumber} routed to maintenance.`, 'success');
+        loadFleetOptimizationData();
+      } else {
+        showToast(res.message || 'Failed to execute fleet reallocation.', 'danger');
+      }
+    }
+
+    async function loadFeedbacks() {
+      const res = await apiRequest('/passenger/feedbacks');
+      const tbody = document.getElementById('feedback-table-body');
+      if (res && res.feedbacks && tbody) {
+        tbody.innerHTML = res.feedbacks.map(f => `
+          <tr>
+            <td class="primary-cell"><b>${f.passenger_name}</b></td>
+            <td><span class="badge-tag badge-purple">${f.category}</span></td>
+            <td><span style="color:#f59e0b;font-weight:700;">★ ${f.rating}/5</span></td>
+            <td>${f.comments}</td>
+            <td>${f.created_at}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function exportReportCsv() {
+      const csvContent = "data:text/csv;charset=utf-8,Route,Date,PassengerCount,OnTimeRate,FuelEfficiency\nRoute 101,2026-09-01,1420,94.2%,8.4km/L\nRoute 202,2026-09-01,1180,91.8%,7.9km/L\nRoute 303,2026-09-01,890,96.5%,9.1km/L";
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "smart_bus_fleet_report.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      showToast('Report CSV exported successfully!', 'success');
+    }
+  </script>
+</body>
+</html>

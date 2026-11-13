@@ -1,0 +1,28 @@
+<!-- Modular Modal Component Template -->
+<div id="smart-modal" class="modal-backdrop" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
+  <div class="glass-panel" style="width:100%;max-width:520px;padding:28px;border-radius:16px;position:relative;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <h3 id="modal-title" style="font-size:18px;color:#fff;">Modal Title</h3>
+      <button onclick="closeSmartModal()" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer;">&times;</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+function openSmartModal(title, contentHtml) {
+  const modal = document.getElementById('smart-modal');
+  const titleEl = document.getElementById('modal-title');
+  const bodyEl = document.getElementById('modal-body');
+  if (modal && titleEl && bodyEl) {
+    titleEl.textContent = title;
+    bodyEl.innerHTML = contentHtml;
+    modal.style.display = 'flex';
+  }
+}
+
+function closeSmartModal() {
+  const modal = document.getElementById('smart-modal');
+  if (modal) modal.style.display = 'none';
+}
+</script>

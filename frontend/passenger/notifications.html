@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transit Notifications & Broadcast Alerts | Smart Bus</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/cards.css">
+  <link rel="stylesheet" href="../assets/css/passenger.css">
+  <style>
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 0 20px 14px;
+      scrollbar-width: none;
+    }
+    .filter-pills::-webkit-scrollbar { display: none; }
+    .pill-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .pill-btn.active, .pill-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+    .alert-card {
+      padding: 16px;
+      border-radius: 14px;
+      margin-bottom: 12px;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .alert-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+    .alert-card.critical {
+      border-left: 4px solid #ef4444;
+    }
+    .alert-card.warning {
+      border-left: 4px solid #f59e0b;
+    }
+    .alert-card.info {
+      border-left: 4px solid #38bdf8;
+    }
+    .alert-card.broadcast {
+      border-left: 4px solid #a855f7;
+    }
+    .live-pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="passenger-wrapper fade-in">
+    <!-- Top Header -->
+    <div class="passenger-header">
+      <div class="passenger-nav-top">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <a href="index.html" style="color:#fff;text-decoration:none;font-size:18px;"><i class="fa-solid fa-arrow-left"></i></a>
+          <div>
+            <h2 class="passenger-title" style="margin:0;font-size:17px;">Transit Alerts & Broadcasts</h2>
+            <div style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <span class="live-pulse"></span> Live Fleet Dispatch Stream
+            </div>
+          </div>
+        </div>
+        <button onclick="loadAlerts()" style="background:rgba(255,255,255,0.08);border:none;color:#38bdf8;width:34px;height:34px;border-radius:50%;cursor:pointer;" title="Refresh alerts">
+          <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Category Pills -->
+    <div class="filter-pills">
+      <button class="pill-btn active" onclick="setFilter('ALL', this)"><i class="fa-solid fa-layer-group"></i> All Alerts</button>
+      <button class="pill-btn" onclick="setFilter('BROADCAST', this)"><i class="fa-solid fa-bullhorn"></i> Broadcasts</button>
+      <button class="pill-btn" onclick="setFilter('CRITICAL', this)"><i class="fa-solid fa-triangle-exclamation"></i> Urgent / SOS</button>
+      <button class="pill-btn" onclick="setFilter('WARNING', this)"><i class="fa-solid fa-shield-halved"></i> Capacity / Safety</button>
+    </div>
+
+    <!-- Notification Feed Container -->
+    <div style="padding: 0 20px 80px;" id="passenger-alerts-list">
+      <div style="text-align:center;padding:40px 20px;color:#64748b;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;color:#38bdf8;margin-bottom:12px;"></i>
+        <div>Fetching live transit broadcasts...</div>
+      </div>
+    </div>
+
+    <!-- Bottom App Navigation Bar -->
+    <nav class="bottom-nav">
+      <a href="index.html" class="nav-tab"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="search.html" class="nav-tab"><i class="fa-solid fa-magnifying-glass"></i> Search</a>
+      <a href="tracking.html" class="nav-tab"><i class="fa-solid fa-map-location-dot"></i> Track</a>
+      <a href="timetable.html" class="nav-tab"><i class="fa-solid fa-calendar-days"></i> Timetable</a>
+      <a href="help.html" class="nav-tab"><i class="fa-solid fa-robot"></i> Assistant</a>
+    </nav>
+  </div>
+
+  <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    let currentFilter = 'ALL';
+    let cachedAlerts = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initSocket();
+      loadAlerts();
+
+      // Listen for live broadcast and fleet alerts via WebSocket
+      document.addEventListener('newFleetAlert', (e) => {
+        const alertData = e.detail?.alert || (e.detail?.alerts && e.detail.alerts[0]);
+        if (alertData) {
+          showToast(`📢 New Alert: ${alertData.message}`, alertData.severity === 'CRITICAL' ? 'danger' : 'info');
+          loadAlerts();
+        }
+      });
+    });
+
+    function setFilter(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.pill-btn').forEach(p => p.classList.remove('active'));
+      if (btn) btn.classList.add('active');
+      renderAlerts();
+    }
+
+    async function loadAlerts() {
+      const refreshIcon = document.getElementById('refresh-icon');
+      if (refreshIcon) refreshIcon.classList.add('fa-spin');
+
+      const res = await apiRequest('/alerts?limit=50');
+      if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+
+      if (res && res.alerts) {
+        cachedAlerts = res.alerts;
+        renderAlerts();
+      } else {
+        const container = document.getElementById('passenger-alerts-list');
+        if (container) {
+          container.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b;">Unable to load alerts. Please check connectivity.</div>';
+        }
+      }
+    }
+
+    function renderAlerts() {
+      const container = document.getElementById('passenger-alerts-list');
+      if (!container) return;
+
+      let filtered = cachedAlerts;
+      if (currentFilter === 'BROADCAST') {
+        filtered = cachedAlerts.filter(a => a.alert_type === 'BROADCAST');
+      } else if (currentFilter === 'CRITICAL') {
+        filtered = cachedAlerts.filter(a => a.severity === 'CRITICAL' || a.alert_type === 'SOS');
+      } else if (currentFilter === 'WARNING') {
+        filtered = cachedAlerts.filter(a => a.severity === 'WARNING' || a.alert_type === 'OVERCROWDING');
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="glass-panel" style="padding:40px 20px;text-align:center;border-radius:16px;margin-top:10px;">
+            <div style="width:54px;height:54px;background:rgba(56,189,248,0.1);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+              <i class="fa-solid fa-bell-slash" style="font-size:24px;color:#38bdf8;"></i>
+            </div>
+            <h4 style="color:#fff;margin:0 0 6px;font-size:16px;">No Active Alerts</h4>
+            <p style="color:#64748b;font-size:13px;margin:0;">All routes are running smoothly without interruptions.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(a => {
+        const isBroadcast = a.alert_type === 'BROADCAST';
+        const isCritical = a.severity === 'CRITICAL' || a.alert_type === 'SOS';
+        const isWarning = a.severity === 'WARNING';
+        
+        let cardClass = 'alert-card info';
+        let badgeClass = 'badge-info';
+        let iconHtml = '<i class="fa-solid fa-circle-info" style="color:#38bdf8;"></i>';
+
+        if (isBroadcast) {
+          cardClass = 'alert-card broadcast';
+          badgeClass = 'badge-info';
+          iconHtml = '<i class="fa-solid fa-bullhorn" style="color:#a855f7;"></i>';
+        } else if (isCritical) {
+          cardClass = 'alert-card critical';
+          badgeClass = 'badge-danger';
+          iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>';
+        } else if (isWarning) {
+          cardClass = 'alert-card warning';
+          badgeClass = 'badge-warning';
+          iconHtml = '<i class="fa-solid fa-users" style="color:#f59e0b;"></i>';
+        }
+
+        const dateObj = new Date(a.created_at);
+        const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateStr = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+        return `
+          <div class="${cardClass}">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                ${iconHtml}
+                <span class="badge-tag ${badgeClass}" style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;">${a.alert_type}</span>
+              </div>
+              <span style="font-size:11px;color:#64748b;font-weight:500;">
+                <i class="fa-regular fa-clock"></i> ${dateStr}, ${timeStr}
+              </span>
+            </div>
+            <p style="font-size:14px;color:#f8fafc;margin:6px 0 10px;line-height:1.45;font-weight:500;">${a.message}</p>
+            <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px;font-size:11px;color:#94a3b8;">
+              <div>
+                <i class="fa-solid fa-bullseye" style="color:#64748b;"></i> Scope: <strong style="color:#cbd5e1;">${a.bus_number || 'All Fleet & Passengers'}</strong>
+              </div>
+              <div>
+                ${a.status === 'ACTIVE' ? '<span style="color:#10b981;font-weight:600;"><i class="fa-solid fa-circle" style="font-size:7px;"></i> Active</span>' : '<span style="color:#64748b;">Resolved</span>'}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>
